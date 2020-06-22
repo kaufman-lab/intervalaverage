@@ -1,13 +1,13 @@
 Package: intervalaverage
-Title: What the Package Does (One Line, Title Case)
+Title: Time-weighted averaging for interval data
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Michael",
+           family = "Young",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "myoung3@uw.edu")
+Description: This package is written to facilitate time-weighed averaging of air pollution
+	predictions predicted over intervals to averaging periods over different intervals.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
