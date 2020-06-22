@@ -13,9 +13,14 @@ create_unused_name <- function(x,reserved_cols){
 
 
 
-#a function to grid expand an arbitrary number of data.tables
-#groups is a character vector corresponding to column names of grouping vars
-#in all of the data.tables
+#' a function to grid expand an arbitrary number of data.tables
+#'
+#' similar to CJ
+#'
+#' @param ... data.tables
+#' @param groups a character vector corresponding to
+#' column names of grouping vars in all of the data.tables
+#'
 #' @export
 CJ.dt <- function(...,groups=NULL) {
   l = list(...)
@@ -52,14 +57,71 @@ CJ.dt <- function(...,groups=NULL) {
 
 cummax.Date <- function(x) as.Date(cummax(as.integer(x)),'1970-01-01')
 
+#' Test for self-overlap
+#' Test whether a data.table contains intervals which overlap with other intervals in diferent rows, possibly within groups
+#'
+#' @param x A data.table
+#' @param interval_vars A length-2 character vector corresponding to column names of x which designate the starting and ending intervals
+#' @param group_vars NULL or a character vector corresponding to column names of x. overlap checks will occur within groups defined by the columns specified here.
+#' @return length-1 logical vector
+#'
+#' @examples
+#' x <- data.table(start=c(1,2),end=c(3,4))
+#' is_overlapping(x,c("start","end")) #the interval 1,3 overlaps with the interval 2,4
+#' y <- data.table(start=c(1,3),end=c(2,4))
+#' is_overlapping(y,c("start","end")) #the interval 1,2 doesn't overlap other intervals in y
+#' z <- data.table(start=c(1,3,1,2),end=c(2,4,3,4),id=c(1,1,2,2))
+#' is_overlapping(z,c("start","end"),"id")
+#' @export
+is_overlapping <- function(x,interval_vars,group_vars=NULL){
+ k <- key(x)
+ setkeyv(x,c(group_vars,interval_vars))
+ stopifnot(!"...irow"%in%names(x))
+ stopifnot(!"i....irow"%in%names(x))
+ x[,...irow:=1:nrow(x)]
+ z <- foverlaps(x,x)
+ out <- z[...irow!=i....irow]
+ setkeyv(x,k)
+ x[, ...irow:=NULL]
+ nrow(out)!=0
+}
 
 
-interval_weighted_avg <- function(x, y,value_vars,
-                                    required_percentage=100,skip_overlap_check=FALSE,
-                                    verbose=FALSE
-){
+#' Convert integer sets to intervals
+#'
+#' Given a set of discrete (integer) values, arrange adjacent values into inclusive intervals
+#' Test whether a data.table contains intervals which overlap with other intervals in diferent rows, possibly within groups
+#'
+#' @param x A data.table
+#' @param value_var A length-1 character vector denoting the column of x which is the integer variable to be grouped into intervals
+#' @param group_vars NULL or a character vector corresponding to column names of x. intervals will be grouped within categories defined by these columns
+#' @return a data.table with columns named "start" and "end" as well as group_vars if present.
+#' The value variable must be unique within groups.
+#' @examples
+#' x <- data.table(value=c(1L,2L,3L,4L,10L,11L,12L,15L,1L,5L,6L),id=c(1L,1L,1L,1L,1L,1L,1L,1L,2L,2L,2L))
+#' create_intervalDT(x,"value","id")
+#' @export
+create_intervalDT <- function(x,value_var,group_vars=NULL){
+  if(any(c("start","end","...adjacent","...grp","...vv") %in% names(x))){
+    stop("start, end,...grp, ...vv, and ...adjacent are reserved names in x. rename these columns")
+  }
+  stopifnot(is.integer(x[[value_var]]))
+  x[,list(V1=sum(duplicated(get(value_var)))),by=group_vars][,stopifnot(all(V1==0L))] #check for duplicates
+  k <- key(x)
+  setkeyv(x,c(group_vars,value_var))
 
+  setnames(x,value_var,"...vv")
 
+  x[,...adjacent:=...vv+1==shift(...vv,type='lead'),by=group_vars]
+  x[,...grp:=rleid(...adjacent),by=group_vars]
+  x[...grp%%2==0,...grp:=...grp-1,by=group_vars] #the last value is part of the previous group
+  out <- x[,list(start=...vv[1],end=last(...vv)),by=c(group_vars,"...grp")]
+  x[,...adjacent:=NULL]
+  x[,...grp:=NULL]
+  setnames(x,"...vv",value_var)
+  setkeyv(x,k)
+  out[, ...grp:=NULL]
+  out[]
 }
 
 #function to take values over defined periods which are non-overlapping within individuals specified by group_vars
@@ -113,8 +175,101 @@ interval_weighted_avg <- function(x, y,value_vars,
 #of that y interval not overlapping with any interval in x
 #note that for periods in y not overlapping with any periods in x, no rows will be returned
 
-#KEYS of x AND Y WILL BE ALTERED.
 
+
+
+
+#' time-weighted averaging function for values measured over intervals
+#'
+#' \code{interval_weighted_avg_f} is a function which takes values recorded over
+#' non-overlapping intervals and averages them to defined intervals, possibly within
+#' groups (individuals/monitors/locations/etc). The function accepts an arbitrary
+#' number of value variables simultaneously. It is written to be fast and memory
+#' efficient.
+#' Typically this function is used to average values measured over short intervals
+#' to longer periods.
+#' But this function could also be used to downsample (without smoothing).
+#' Ie, "Averages" can be computed over periods shorter than the intervals over
+#' which values were measured
+#' (resulting in the original value split into multiple intervals).
+#'
+#' this function uses the data.table package. The input tables and return are
+#' objects of class data.table.
+#' data.tables are (mostly) just fancy data.frames, so if you're
+#' unfamiliar with this package you could use \code{as.data.frame(x)},
+#' \code{as.data.frame(y)}
+#' as the inputs and similarly coerce the result from a data.table back to a
+#' data.frame using \code{as.data.frame()}
+#'
+#'
+#' the data.table keys of \code{x} and \code{y} (and therefore row order) may be altered.
+#' This is a compromise
+#' to avoid unnecessary copying and/or unnecessary rekeying when dealing with
+#' large x and y tables. \cr
+#'
+#' When required_percentage is less than 100, xminstart and xmaxend may be useful to
+#' determine whether an average meets specified coverage requirements in terms of span
+#' (range) of the y interval.\cr
+#'
+#'
+#'
+#' @param x a data.table object containing measuresments over intervals which must be
+#' completely non-overlapping within
+#' groups defined by group_vars. if group_vars is specified (non-NULL), BOTH x and y must
+#' contain columns specified in group_vars.
+#' @param y a data.table object containing intervals over which you'd like averages
+#' of x-measures computed. y intervals, unlike x intervals, may be overlapping.
+#' if group_vars is specified (non-NULL),  y must contains those group_vars column names,
+#'  and this would allow different averaging period for each subject/monitor/location.
+#' @param interval_vars a length-2 character vector of column names in both x and y.
+#' these columns in x and y should be all numeric or all Dates.
+#' @param value_vars a character vector of column names in x. This specifies
+#' the columns to be averaged.
+#' @param group_vars a character vector of column names in x and in y
+#' specifying subjects/monitors/locations within which to take averages.
+#' can by NULL, in which case averages are taken over the entire x
+#' dataset for each y period.
+#' @param required_percentage the percentage of non-missing, measured x-observations in periods
+#' defined by y for the resulting measure in the return to be nonmissing.
+#'  by default, 100 (meaning that any missing observations will result in an NA).
+#' @param skip_overlap_check by default, FALSE. setting this to TRUE will skip
+#'  internal checks to make sure x intervals are non-overlapping within
+#'   groups defined by group_vars. #'  intervals in x must be non-overlapping,
+#'    but you may want to skip this check if you've  already checked this because
+#'    it is computationally intensive for large datasets.
+
+#' @return returns a data.table object.
+#' Rows of the return data.table correspond to intervals from y. i.e, the number
+#' of rows of the return will be the number of rows of y.
+#' Columns of the returned data.table are as follows: \cr
+#' - grouping variables as specified in group_vars \cr
+#' - interval columns corresponding to intervals in y. columns are named the same as they were in x and y.
+#' - value variable columns from x, averaged to periods in y.
+#'    named the same as they were in x \cr
+#' - \code{yduration}: the length of the interval (ie as a count) specified in y \cr
+#' - \code{xduration}: the total length of the intervals (ie as a count)
+#'   from x that fall into this interval from y. this will be equal to
+#'   yduration if x is comprehensive for (ie, fully covers)  this interval from y. \cr
+#' - \code{nobs_<value_vars>}: for each \code{value_var} specified, this is the count of
+#'  non-missing values from x that fall into this interval from y. this will be
+#'   equal to xduration if the value_var contains no NA values over the y
+#'   interval. If there are NAs in value variables, then \code{nobs_<value_vars>}
+#'    will be different from \code{xduration} and won't necessarily be all the same
+#'     for each value_var. \cr
+#' Rows of y where an average cannot be calculated
+#' (either due to the measurements being present in X but NA or the measurements
+#' not being in x at all) are still returned with value variable columns set to NA
+#' (see the required_percentage argument for more details). \cr
+#' - \code{xminstart}: the minimum of the start intervals in x used in averaging returned
+#' y intervals, within groups. If the start of the earliest x interval is less than the start
+#' of the y interval, the minumum of the y interval is returned. Note, this is the minimum start
+#'  time whether or not value_vars were missing or not for that start time.
+#'  If you really need non-missing minimum start times, you can remove missing intervals from
+#'  x prior to calling interval_weighted_avg_f (calling this separately for each value_var).
+#' - \code{maxend}:  the maximum of the end intervals in x used in averaging returned y intervals,
+#' within groups. Again, like for xminstart,
+#'  this does not pay attention to whether the interval in x had non-missing value_vars.
+#' @export
 interval_weighted_avg_f <- function(x, y,interval_vars,value_vars, group_vars=NULL,
                                     required_percentage=100,skip_overlap_check=FALSE,
                                     verbose=FALSE
@@ -567,8 +722,8 @@ remove_overlaps <- function(x,interval_vars,group_vars=NULL){
   #when data.table veresion 1.12.3 you can use fifelse to avoid coercing dates to numeric
   #in the mean time use dplyr if_else
   temp <- EVAL("xd[,.SD[!is.na(",end_next_var,"),list(
-   ",interval_vars[1],"=dplyr::if_else(!",is_end_var,",",value_var,",",value_var,"+1L),
-    ",interval_vars[2],"=dplyr::if_else(!",end_next_var,",",value_next_var,"-1L,",value_next_var,")
+   ",interval_vars[1],"=data.table::if_else(!",is_end_var,",",value_var,",",value_var,"+1L),
+    ",interval_vars[2],"=data.table::if_else(!",end_next_var,",",value_next_var,"-1L,",value_next_var,")
   )],by=group_vars]")
 
   temp <- EVAL("temp[",interval_vars[2],">=",interval_vars[1],"]")
