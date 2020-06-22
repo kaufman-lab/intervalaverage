@@ -181,7 +181,7 @@ create_intervalDT <- function(x,value_var,group_vars=NULL){
 
 #' time-weighted averaging function for values measured over intervals
 #'
-#' \code{interval_weighted_avg_f} is a function which takes values recorded over
+#' \code{intervalaverage} is a function which takes values recorded over
 #' non-overlapping intervals and averages them to defined intervals, possibly within
 #' groups (individuals/monitors/locations/etc). The function accepts an arbitrary
 #' number of value variables simultaneously. It is written to be fast and memory
@@ -265,12 +265,12 @@ create_intervalDT <- function(x,value_var,group_vars=NULL){
 #' of the y interval, the minumum of the y interval is returned. Note, this is the minimum start
 #'  time whether or not value_vars were missing or not for that start time.
 #'  If you really need non-missing minimum start times, you can remove missing intervals from
-#'  x prior to calling interval_weighted_avg_f (calling this separately for each value_var).
+#'  x prior to calling intervalaverage (calling this separately for each value_var).
 #' - \code{maxend}:  the maximum of the end intervals in x used in averaging returned y intervals,
 #' within groups. Again, like for xminstart,
 #'  this does not pay attention to whether the interval in x had non-missing value_vars.
 #' @export
-interval_weighted_avg_f <- function(x, y,interval_vars,value_vars, group_vars=NULL,
+intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
                                     required_percentage=100,skip_overlap_check=FALSE,
                                     verbose=FALSE
                                     ){

@@ -3,5 +3,5 @@
 export(CJ.dt)
 export(clip_exposures)
 export(create_intervalDT)
-export(interval_weighted_avg_f)
+export(intervalaverage)
 export(is_overlapping)

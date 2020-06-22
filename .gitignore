@@ -2,3 +2,4 @@
 *.Rproj
 intervalaverage.Rproj
 .Rhistory
+inst/doc
