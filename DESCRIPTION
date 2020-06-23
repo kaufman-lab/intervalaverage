@@ -6,8 +6,16 @@ Authors@R:
            family = "Young",
            role = c("aut", "cre"),
            email = "myoung3@uw.edu")
-Description: This package is written to facilitate time-weighed averaging of air pollution
-	predictions predicted over intervals to averaging periods over different intervals.
+Description: This function expands on data.table::foroverlaps to perform fast
+	and memory efficient time-weighted averages of values measures over intervals 
+	into new arbitrary intervals. This operation is useful in the context any large
+	datasets where measures are stored representing a value occuring for the duration
+	of an interval, but was written to deal with air pollution data recorded or predicted
+	as time-integrated averages over repeating periods. Often this data needs to be
+	shifted to non-aligned periods or averaged up to the calendar year (for example). 
+	Because this package makes careful use of the highly-optimized data.table package, 
+	the intervalaverage function is considerably faster than similar algorithms 
+	implemented in SQL.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

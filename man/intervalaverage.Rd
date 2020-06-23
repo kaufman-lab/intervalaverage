@@ -2,7 +2,7 @@
 % Please edit documentation in R/timeperiod_functions.R
 \name{intervalaverage}
 \alias{intervalaverage}
-\title{time-weighted averaging function for values measured over intervals}
+\title{time-weighted average of values measured over intervals}
 \usage{
 intervalaverage(
   x,

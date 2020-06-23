@@ -13,5 +13,8 @@ CJ.dt(..., groups = NULL)
 column names of grouping vars in all of the data.tables}
 }
 \description{
-similar to CJ
+similar to CJ and expand.grid except for rows data.tables.
+}
+\details{
+coerce data.frames to data.tables first using \code{as.data.table()}  or \code{setDT()}
 }
