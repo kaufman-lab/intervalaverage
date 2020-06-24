@@ -4,18 +4,16 @@
   [![Travis build status](https://travis-ci.com/kaufman-lab/intervalaverage.svg?branch=master)](https://travis-ci.com/kaufman-lab/intervalaverage)
   <!-- badges: end -->
 
-To install
 
+
+Installation
 ```
 library(devtools)
-install_github("kaufman-lab/intervalaverage","main")
+install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
 ```
 
-Main functions:
+Read the vignette:
 ```
-?interval_weighted_avg_f
-?clip_exposures
+library(intervalaverage)
+vignette("intervalaverage-intro")
 ```
-
-Vignettes:
-forthcoming

@@ -84,49 +84,49 @@ test_that("intersection is non-overlapping",{
 })
 
 
-f <- function(){
-
-  #actually manually do the intersect by expansion:
-  exposure_dataset3[,i:= 1:.N]
-  exposure_dataset3_expanded <- exposure_dataset3[, list(date=seq(start,end,by=1),
-                                                         location_id=rep(location_id,.N),
-                                                         pm25=rep(pm25,.N),
-                                                         no2=rep(no2,.N)),
-                                                  by="i"]
-  exposure_dataset3_expanded[,i:=NULL]
-
-  addr_history[,i:=1:.N]
-  addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
-                                              location_id=rep(location_id,.N),
-                                              addr_id=rep(addr_id,.N),
-                                              ppt_id=rep(ppt_id,.N)),
-                                        by="i"]
-
-
-  addr_history_expanded[,i:=NULL]
-
-
-  setkey(addr_history_expanded,date,location_id)
-  setkey(exposure_dataset3_expanded,date,location_id)
-
-  p_expanded <- exposure_dataset3_expanded[addr_history_expanded,nomatch=NULL]
-  z_expanded  <- z[,list(date=seq(start2,end2,by=1),
-                         pm25=rep(pm25,.N),
-                         no2=rep(no2,.N),
-                         location_id=rep(location_id,.N)
-  ) ,by=c("addr_id","ppt_id","start2","end2")]
-  z_expanded[, start2:=NULL]
-  z_expanded[, end2:=NULL]
-  setcolorder(p_expanded, names(z_expanded))
-  setkey(p_expanded,date, ppt_id, addr_id, location_id)
-  setkey(z_expanded,date, ppt_id, addr_id, location_id)
-
-  all.equal(p_expanded,z_expanded)
-}
-
-
 #full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
 test_that("intervalintersect w/ random sample compared to manual expansion method  ",{
+
   skip_on_cran()
+
+  f <- function(){
+
+    #actually manually do the intersect by expansion:
+    exposure_dataset3[,i:= 1:.N]
+    exposure_dataset3_expanded <- exposure_dataset3[, list(date=seq(start,end,by=1),
+                                                           location_id=rep(location_id,.N),
+                                                           pm25=rep(pm25,.N),
+                                                           no2=rep(no2,.N)),
+                                                    by="i"]
+    exposure_dataset3_expanded[,i:=NULL]
+
+    addr_history[,i:=1:.N]
+    addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
+                                                location_id=rep(location_id,.N),
+                                                addr_id=rep(addr_id,.N),
+                                                ppt_id=rep(ppt_id,.N)),
+                                          by="i"]
+
+
+    addr_history_expanded[,i:=NULL]
+
+
+    setkey(addr_history_expanded,date,location_id)
+    setkey(exposure_dataset3_expanded,date,location_id)
+
+    p_expanded <- exposure_dataset3_expanded[addr_history_expanded,nomatch=NULL]
+    z_expanded  <- z[,list(date=seq(start2,end2,by=1),
+                           pm25=rep(pm25,.N),
+                           no2=rep(no2,.N),
+                           location_id=rep(location_id,.N)
+    ) ,by=c("addr_id","ppt_id","start2","end2")]
+    z_expanded[, start2:=NULL]
+    z_expanded[, end2:=NULL]
+    setcolorder(p_expanded, names(z_expanded))
+    setkey(p_expanded,date, ppt_id, addr_id, location_id)
+    setkey(z_expanded,date, ppt_id, addr_id, location_id)
+
+    all.equal(p_expanded,z_expanded)
+  }
   expect_true(f())
 })
