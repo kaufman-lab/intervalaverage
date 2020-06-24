@@ -1,7 +1,7 @@
 # intervalaverage
 
 <!-- badges: start -->
-  [![Travis build status](https://travis-ci.com/kaufman-lab/intervalaverage.svg?branch=master)](https://travis-ci.com/kaufman-lab/intervalaverage)
+  [![Travis build status](https://travis-ci.com/kaufman-lab/intervalaverage.svg?branch=main)](https://travis-ci.com/kaufman-lab/intervalaverage)
   <!-- badges: end -->
 
 
