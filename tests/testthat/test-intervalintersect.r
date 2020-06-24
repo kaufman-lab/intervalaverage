@@ -1,14 +1,18 @@
 #full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
 test_that("intervalintersect",{
 set.seed(100)
-##leverage the example from the vignette for some tests
+
+  for(i in 1:3){
+##leverage the structure of the example from the vignette for some tests
+  ##smaller dataset but run multiple times
+      #(fewer observations, shorter exposure and address period)
 exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
-  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=1000),
-             end=seq(as.Date("2000-01-07"),by=7,length=1000),pm25=rnorm(4,mean=15),
+  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=500),
+             end=seq(as.Date("2000-01-07"),by=7,length=500),pm25=rnorm(4,mean=15),
              no2=rnorm(4,mean=25) )
 } ))
 
-n_ppt <- 100
+n_ppt <- 50
 addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
 addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)]
 
@@ -29,7 +33,7 @@ addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),by=locat
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.Date("1995-01-01"),as.Date("2017-01-01"),by=1)
+  dateseq <- seq(as.Date("1995-01-01"),as.Date("2008-01-01"),by=1)
   dates <- sort(sample(dateseq,n))
   #half of the time, make the last date "9999-01-01" which represents that the currently
   #lives at that location and we're carrying that assumption forward
@@ -101,8 +105,7 @@ z <- intervalintersect(x=exposure_dataset3,
 
   addr_history[,i:=1:.N]
 
-  #addr_history_expanded  is a large object.
-    #if this test is failing on cran or travis, it could be because there's not enough memory
+
   addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
                                               location_id=rep(location_id,.N),
                                               addr_id=rep(addr_id,.N),
@@ -130,6 +133,7 @@ z <- intervalintersect(x=exposure_dataset3,
 
 
   expect_equal(p_expanded,z_expanded)
-
+  gc()
+}
 
 })

@@ -625,7 +625,7 @@ test_that("intervalaveraging", {
 
 
 test_that("intervalaveraging group 2", {
- skip("skip")
+
 
   ####large dataset that's non-overlapping
   set.seed(18)
