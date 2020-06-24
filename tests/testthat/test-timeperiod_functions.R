@@ -605,16 +605,18 @@ test_that("intervalaveraging", {
 
 
 
-  zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
+  expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
                           value_vars=c("value1","value2"),
                           group_vars=c("id1","id2"),
-                          skip_overlap_check=FALSE)
+                          skip_overlap_check=FALSE),
+                 "removing these duplicated rows automatically")
 
-  zzz2 <- intervalaverage:::interval_weighted_avg_slow_f(a,b,
+  expect_warning(zzz2 <- intervalaverage:::interval_weighted_avg_slow_f(a,b,
                                                          interval_vars=c("start","end"),
                                                          value_vars=c("value1","value2"),
                                                          group_vars=c("id1","id2"),
-                                                         skip_overlap_check=FALSE)
+                                                         skip_overlap_check=FALSE),
+                 "removing these duplicated rows automatically")
 
   expect_equal(zzz1,zzz2)
 

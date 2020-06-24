@@ -100,13 +100,14 @@ z <- intervalintersect(x=exposure_dataset3,
   exposure_dataset3_expanded[,i:=NULL]
 
   addr_history[,i:=1:.N]
+  print(head(addr_history,2))
   addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
                                               location_id=rep(location_id,.N),
                                               addr_id=rep(addr_id,.N),
                                               ppt_id=rep(ppt_id,.N)),
                                         by="i"]
 
-
+  print(head(addr_history_expanded,2))
   addr_history_expanded[,i:=NULL]
 
 

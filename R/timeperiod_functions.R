@@ -485,7 +485,7 @@ interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_va
     stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
     print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))
   }else{
-    warning("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
+    message("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
   }
 
 
