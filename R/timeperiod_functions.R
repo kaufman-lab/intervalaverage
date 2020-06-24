@@ -191,10 +191,15 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #' within groups. Again, like for xminstart,
 #'  this does not pay attention to whether the interval in x had non-missing value_vars.
 #' @export
-intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
-                                    required_percentage=100,skip_overlap_check=FALSE,
-                                    verbose=FALSE
-                                    ){
+intervalaverage <- function(x,
+                            y,
+                            interval_vars,
+                            value_vars,
+                            group_vars=NULL,
+                            required_percentage=100,
+                            skip_overlap_check=FALSE,
+                            verbose=FALSE
+){
   # due to NSE notes in R CMD check:
   xminstar <- xmaxend <- xduration <- yduration <-
     interval_end <- interval_start <- dur  <-  NULL
@@ -297,7 +302,7 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
 
     #stop if there are overlapping periods within groups:
     stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
-    print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))
+    if(verbose){print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))}
   }else{
     message("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
   }
@@ -440,8 +445,14 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
 #slower algorithm. used for testing since this is the simpler approach and less likely to have errors.
 #Not recommended for large datasets since this expands the data into a row for every increment.
 #not exported
-interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_vars=NULL,
-                                         required_percentage=100,skip_overlap_check=FALSE){
+interval_weighted_avg_slow_f <- function(x,
+                                         y,
+                                         interval_vars,
+                                         value_vars,
+                                         group_vars=NULL,
+                                         required_percentage=100,
+                                         skip_overlap_check=FALSE,
+                                         verbose=FALSE){
 
   xminstart <- xmaxend <- NULL
   EVAL <- function(...)eval(parse(text=paste0(...)))
@@ -483,7 +494,7 @@ interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_va
 
     #stop if there are overlapping periods within groups:
     stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
-    print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))
+    if(verbose){print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))}
   }else{
     message("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
   }
