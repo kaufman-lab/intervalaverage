@@ -1,10 +1,3 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})
-
-
-set.seed(180)
-
 
 
 
@@ -41,6 +34,7 @@ test_that("isolateoverlaps", {
     )
   )
 
+  set.seed(90)
   n <- 1000
   x <- matrix(round(runif(n=n*2, 0,1000)),ncol=2)
   x <- as.data.table(t(apply(x,1,sort)))
@@ -161,6 +155,7 @@ test_that("intervalaveraging", {
 
 
   ##averaging intervals where groups=NULL by default
+  set.seed(32)
   a0.0 <- data.table(start=seq(1L,100L,by=10L),value1=rnorm(10))
   a0.0[,end:=start+9L]
   b0.0 <- data.table(start=1L,end=25L)
@@ -183,6 +178,7 @@ test_that("intervalaveraging", {
 
 
   #averaging intervals longer than observed period
+  set.seed(72)
   a_start_date <- seq(structure(10590, class = "Date"),
                       structure(17163, class = "Date"),by=7)
 
@@ -272,6 +268,7 @@ test_that("intervalaveraging", {
   #intervals in a that don't overlap at all with intervals in b should not be returned--
   #because we have no interest in intervals not specified in b
 
+  set.seed(12380)
   a <- CJ(id=1:2,id2=1:2,start=c(-13L,seq(1L,36L,by=7L)))
   a[, end:=start+6L]
   a[, value:=rbinom(.N,5,prob=.5)]
@@ -468,7 +465,7 @@ test_that("intervalaveraging", {
 
 
   #periods that have partial overlaps in x--this should return an error
-
+  set.seed(2340)
   a_overlap <- CJ(id=1:2,id2=1:2,start=c(-13L,seq(1L,36L,by=7L),2L))
   a_overlap[, end:=start+6L]
   a_overlap[, value:=rbinom(.N,5,prob=.5)]
@@ -511,6 +508,7 @@ test_that("intervalaveraging", {
 
 
   ####realistic example with overlaping values: deoverlap them then average to a period:
+  set.seed(93450)
   a_overlap1 <- CJ(id1=1:3,id2=1:100, start=a_start_date)
   a_overlap1[, end:=start+10]
   a_overlap1[, value1:=rnorm(.N)]
@@ -577,6 +575,7 @@ test_that("intervalaveraging", {
 
 
   ##more realism
+  set.seed(12323)
   n <- 1e5
   x <- matrix(as.integer(round(runif(n=n*2, 0,1000))),ncol=2)
   x <- as.data.table(t(apply(x,1,sort)))
@@ -598,7 +597,6 @@ test_that("intervalaveraging", {
 
   #insert missingness
   a[sample(1:nrow(a),size=floor(.2*nrow(a))),`:=`(value1=NA,value2=NA)]
-
   b <- matrix(as.integer(round(runif(n=n*2, 0L,1000L))),ncol=2)
   b <- as.data.table(t(apply(b,1,sort)))
   setnames(b,names(b),c("start","end"))
@@ -628,6 +626,7 @@ test_that("intervalaveraging group 2", {
 
 
   ####large dataset that's non-overlapping
+  set.seed(18)
   az_start_date <- seq(structure(0, class = "Date"),
                        structure(1e5, class = "Date"),by=14)
 
