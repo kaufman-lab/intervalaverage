@@ -14,44 +14,47 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup,echo=FALSE,message=FALSE}
 library(intervalaverage)
 ```
 
-The intervalaverage function merges periods in y to periods in x by
- interval variables and possible
- grouping variables using foverlaps. The goal is to calculate averages for values in y, 
- so y is actually passed to the first argument of foverlaps. This confusion is due to
- inconsistency in how x[y] syntax is a right join whereas foverlaps(x,y) is a left
- join (this is probably due to foverlaps replicating an existing bioconductor function).
- Anyway, I chose to have intervalaverage(x,y) be a right join to match x[y] 
- rather than foverlaps.   foverlaps is called internally even though there's an 
- equivalent non-equi x[y, on=] join because foverlaps is slightly faster at producing 
- all the columns needed to do the calculates.
+## Motivation
 
-Specifically, in order to keep track of counts of observe time (which become
- weights in the weighted average function), I need to calculate the duration 
- of overlap within a joined interval. It's surprising that foverlaps doesn't 
- include this, but it needs to be calculated explicitly in my function using 
- pmin on both of the end intervals (which becomes inteval_end) and pmax on both 
- of the start intervals (which becomes interval_start).  The differerence
- (interval_end-interval_start+1) is the duration ("dur") of an overlapping 
- joined interval. The sum of these durations across a y interval is the total 
- count of unique units of time present in x that overlap with that y interval
- (note that x intervals need to be non-overlapping within groupings).  Therefore,
- these units of time ("dur") can be used as weights in a weighted average.
+The interval average function was born out of the need to take values measured 
+over a set of intervals and time-weight average those values into a different set
+of intervals. Algorithmically, the simplest approach to deal with this problem
+is just to expand interval data into repeated values over intervals that are all
+the same length (e.g. the value of `8` measured over the interval `[3,5]` becomes
+the value of 8 measured over `[3,3]` and `[4,4]` and `[5,5]`) but this is incredibly
+memory intensive.  Instead a weighting approach is necessary. 
 
-The value variables in the resulting data.table are averaged in a group-by 
-statement (by periods defined in y as well by optional grouping variables). 
-Specifically, the average is a weighted average that takes into account the 
-duration of an observed measurement in a desired averaging period (y interval). 
-The function is written to make use of data.table's Gforce capabilities. 
+I was not able to find a package which accomplished this task, much less
+a package which accomplished it quickly and with minimal memory overhead.
+
+
+## A brief description of the intervalaverage algorithm (with a focus on explaining why seemingly convoluted choices were made in the function body)
+
+The `intervalaverage` function starts by merging periods in y to periods in x by
+ interval variables and possible grouping variables using foverlaps. 
+Technically speaking `intervalaverage(x,y, interval_vars,group_vars)`
+performs a right join on group_vars and non-equi joining (for partial overlaps)
+on interval_vars. The function then calculates the length of each joined interval
+intersection (this is defined as the dur column in the function body).
+  The average value of the value_vars is calculated over each interval
+in y as `sum(value_vars*dur)/sum(temp_nobs_vars)`. For example,
+to calculate the weighted average of a value over 
+an interval of length 4 where a value of 8 was observed for 3 days and a value of
+2 was observed for 1 day, we could take `8*3/4 + 2*1/4` or `(1/4)*(8*3+2*1)`.
+
+The `intervalaverage` uses the latter equation due to the fact that data.table's 
+group by arithmatic is highly optimized but only for specific calls.
 data.table's gforce  efficeintly does group-by operations directly in C rather 
 than in R. Since data.table's ability to detect an optimized group-by function 
-call is limited, using gforce for a weighted mean (and even just for an abritrary 
-number of value_vars) requires use of some nonstandard evaluation. In this context, 
-the non-standard evaluation is constructing a data.table call via paste and calling 
-it with eval(parse(text=<>)). 
+call is limited, using gforce for an abritrary number of value_vars columns
+requires use of some nonstandard evaluation. In this context, 
+the non-standard evaluation is constructing a data.table call (ie a "macro")
+ via paste and calling it with `eval(parse(text=<>))` (which has been defined 
+ as the `EVAL` function as an alias to avoid writing that multiple times). 
 
 An additional consideration is that since the function is written to accept 
 data.tables with arbitrary columns, and in the joined data.table z there could 
@@ -59,28 +62,42 @@ be naming conflicts between user-supplied columns and constructed columns, all
 user-supplied columns are renamed to placeholder names until the end of the 
 function. This avoids potential issues with naming conflicts with *temporary*
  internal columns that are not included in the output. However, output columns
- (xduration, yduration, xminstart, xmaxend) are reserved column names and can't
+ (`xduration`, `yduration`, `xminstart`, `xmaxend`) are reserved column names and can't
  exist as columns that need to end up in z (specifically, they can't be in group_vars, 
- interval_vars, or value_vars).  Since only group_vars,interval_vars, and value_vars
- go into the foverlaps merge, columns named xduration, yduration, xminstart, and
- xmaxend are allowed to be other columns of x/y as long as they're not group_vars,
- value_vars, or interval_vars.
+ interval_vars, or value_vars).  Since only `group_vars`,`interval_vars`, and `value_vars`
+ go into the `foverlaps` merge, columns named `xduration`, `yduration`, `xminstart`, and
+ `xmaxend` are allowed to be other columns of `x` or `y` as long as they're not `group_vars`,
+ `value_vars`, or `interval_vars`.
 
+## Memory usage: why it's not as good as it could be and how that might be fixable
 
-Memory: The headline here is that if you run into memory issues you can always 
-do a for loop iterating over group vars. There's an example of this in tests.R.  
+Memory: 
+The headline here is that if you run into memory issues you can always 
+do a for loop iterating over group vars. There's an example of this at the end of 
+the corresponding unit test .R file.
 
-In greater detail: This function unfortunately does create a large allocation 
-(the intermediate joined table z). Ideally the function would be written to avoid
- this large allocation by doing an immediate by=.EACHI (using an x[y] non-equi join).
+In greater detail: 
+This function unfortunately does create a large allocation 
+(the intermediate joined table `z`). Ideally the function would be written to avoid
+ this large allocation by doing an immediate `by=.EACHI` 
+ (using an `x[y]` non-equi join instead of `foverlaps`).
+ 
  Unfortunately I've tested this approach and while it avoids the large memory allocation, 
- it's much slower due to pmin/pmax needing to be calculated within groups defined by .EACHI.
- If foverlaps directly produced the equivalents of the interval_start/interval_end variables,
- and if foverlaps supported immediate group-by operations then this function could be
+ it's much slower due to pmin/pmax (which are used to calculate interval intersects)
+ needing to be calculated within groups defined by `.EACHI`.
+ If foverlaps directly produced the equivalents of the `interval_start`/`interval_end`
+ variables (ie the interval intersects),
+ and if `foverlaps` supported immediate group-by operations (similar to `by=.EACHI`)
+ then this function could be
  memory-efficient and relatively fast. That approach might still be slower than 
  the current approach since GFORCE isn't supported for by-without-by/.EACHI joins.
  Conceptually by-without-by creates each group and immediately summarizes that group
- before iterating to the next group. I think that .EACHI is probably conceptually at 
- odds with the idea of GFORCE since GFORCE saves time by doing group-by operations 
- in C on a bunch of groups at once.  Still, there might be an eventual possibility
- for trading some speed for avoing the large memory allocation.
+ before iterating to the next group. This saves memory because it never allocates
+ the whole table, but may not be as well optimized as the GFORCE group-by operations.
+ 
+ Still, there might be an eventual possibility
+ for trading some speed for avoing the large memory allocation if `foverlaps` calculates
+ intersect lengths.
+ 
+ 
+ 

@@ -310,6 +310,8 @@ intervalaverage <- function(x,
 
   ### merge x and y ####
 
+  xx <- proc.time()
+
   #in order to guarantee that there aren't column name conflicts
      #between the temporary variables such as interval_start
     #and the user-provided column names such as group_vars, value_vars, interval_vars
@@ -319,40 +321,56 @@ intervalaverage <- function(x,
   ivars <- paste0("i",1:2)
   i.ivars <- paste0("i.",ivars)
 
-  xx <- proc.time()
-
   #subset x and y to only variables subsequently.
-   #this avoids  naming conflicts with extraneous variables which don't need to be part of the join.
+   #this avoids  naming conflicts with extraneous
+    #variables which don't need to be part of the join.
   z <- data.table::foverlaps(x=y[,c(group_vars,interval_vars),with=FALSE],
                  y=x[,c(group_vars,interval_vars,value_vars),with=FALSE])
   #i.ivars are from x=y, ivars are from y=x
-
-  if(verbose){
-  print("data.table::foverlaps duration:")
-  print(proc.time()-xx)
-  xx <- proc.time()}
-
+    #note that in the return data.table of foverlaps,
+      #any columns in either x or y (including interval_vars)
+      #end up in the return of foverlaps
+    # address naming conflicts, foverlaps prepends "i." to any columns from x
+      #since I'm specifying foverlaps(x=y,y=x)
+      #this means that columns prepended from "i." are from y
+    #(e.g., the y in the current calling scope of intervalvars)
 
  ##rename all user-supplied columns to the column names pre-specified above.
-  #this avoids naming conflicts with temp variables such as interval_end, interval_start, dur, and the other temporary variables
+  #this avoids naming conflicts with temp variables
+   #such as interval_end, interval_start, dur, and the other temporary variables
   #columns will be renamed back to their original names at the end of the function
   data.table::setnames(z,
            c(group_vars,interval_vars,paste0("i.",interval_vars),value_vars),
            c(gvars,ivars,i.ivars,vvars)
   )
 
+
+  if(verbose){
+    print("data.table::foverlaps duration:")
+    print(proc.time()-xx)
+    xx <- proc.time()
+  }
+
+  #interval_start and interval_end together
+    #define the interval intersects of the joined intervals
   EVAL(paste0("z[,interval_end:=pmin(",i.ivars[2],", ",ivars[2],")]"))
   EVAL(paste0("z[,interval_start:=pmax(",i.ivars[1],",",ivars[1],")] "))
 
   if(verbose){
-  print("pmin/pmax duration:")
-  print(proc.time()-xx)}
-  xx <- proc.time()
+    print("pmin/pmax duration:")
+    print(proc.time()-xx)
+    xx <- proc.time()
+  }
 
+
+  #dur is the length of each interval intersect
   z[,dur := as.integer(interval_end-interval_start+1L)]
 
-  #temp_nobs_vars is the count of nonmissing observations
-   #this is 0 when the value_var is missing and dur otherwise.
+  #temp_nobs_vars is a vector of column names
+   #each column is the count of nonmissing observations for
+    #its corresponding value_var column
+   #count column is  0 when the value_var is missing in that row
+   #and equal to the dur column otherwise.
    #calculated as !is.na(value_var)*dur
   temp_nobs_vars <- paste0("vnm",1:length(value_vars))
    for(i in 1:length(vvars)){
@@ -362,7 +380,12 @@ intervalaverage <- function(x,
       )
    }
 
-
+ #take the product between the value variable and interval intersect length
+    #this is the first step in calculating the weighted average
+  #note that I could just as use the variable-specific temp_nobs_vars
+     #instead of dur as the numerator product weight here
+  #but by definition, the variable-specific temp_nobs_vars are only different from dur
+    #when value_vars is missing for that row.
   prod_vars <- paste0("p",1:length(value_vars))
   for(i in 1:length(vvars)){
     data.table::set(z,
@@ -373,25 +396,42 @@ intervalaverage <- function(x,
 
   if(verbose){
     print("pre-grouping var calculation:")
-  print(proc.time()-xx)
-  xx <- proc.time()}
+    print(proc.time()-xx)
+    xx <- proc.time()
+  }
 
-  #nobs vars will be the count of non-missing obs for each time-period in y (ie, summed from temp nobs)
+  #generate a set of column names following the form
+    #nobs_<value_var>
+   #each nobs_<value_var> column will be the count of non-missing observations
+    #of that value variable in that time-period in y
   nobs_vars <- paste("nobs",value_vars, sep="_")
   sumprod_vars <- paste("sumproduct",value_vars, sep="_")
 
-  ###gforce data.table statement: sum, min, max are optimized for use in by statement.
-    #but syntactically this is limited.
-      # x[, list(range=max(x)-min(x))] is NOT optimized
-      #but x[, list(min=min(x), max=max(x))] is optimized
+
+  ##next, construct calculate the sum of the products (sumprod_vars)
+    #as well as sums for nobs_vars and min/max for xminstart/xmaxend.
+
+  ###optimization note:
+    #gforce data.table statement: sum, min, max are optimized for use in by statement.
+      #but syntactically this is limited.
+        # x[, list(sumprod=sum(x*y)),by=z] is NOT optimized by data.table GForce
+        # instead, I've done:
+        # x[, xy:=x*y]
+        # x[, list(sumprod=sum(xyy)),by=z] this IS optimized by GForce
+        # note that weighted mean isn't directly calculated in the by
+        # because a complex formula that data.table gforce isn't capable of (yet)
+
+
   q <- EVAL(
     paste0(
       "z[,list(",
-      "xduration=sum(dur),",
+      "xduration=sum(dur)"
+      ",",
       paste0(nobs_vars,"=sum(",temp_nobs_vars,",na.rm=TRUE)",collapse=","),
       ",",
       paste0(sumprod_vars,"=sum(",prod_vars,",na.rm=TRUE)",collapse=","),
-      ",xminstart=min(interval_start),",
+      ",",
+      "xminstart=min(interval_start),",
       "xmaxend=max(interval_end)",
       "),",
       "keyby=c(gvars,i.ivars)]"
@@ -399,18 +439,17 @@ intervalaverage <- function(x,
   )
 
   if(verbose){
-  print("gforce:")
-  print(proc.time()-xx)
-  xx <- proc.time()}
-
-  #note that weighted mean isn't directly calculated in the by
-    #because a complex formula that data.table gforce isn't capable of (yet)
+    print("gforce:")
+    print(proc.time()-xx)
+    xx <- proc.time()
+  }
 
 
-  #calculate the mean as value_vars=sum(value_vars*dur)/sum(temp_nobs_vars) by group_vars and interval_vars
-  #note that I could just as use temp_nobs_vars instead of dur as the product
-   #but they're only different when value_vars is missing (by definition)
-     #so there's no point in bringing al the temp_nobs_vars columns into the j statement when one column can accomplish the same thing
+
+  #calculate the mean as value_vars=sum(value_vars*dur)/sum(temp_nobs_vars)
+     #where the sums are over by group_vars and interval_vars
+      #and have already been calculated and stored as columns when creating q
+  #the final step is just to calculate the ratio:
   EVAL(paste0("q[,`:=`(",paste0(value_vars,"=",sumprod_vars,"/",nobs_vars,collapse=","),")]"))
 
   #remove temporary column sum_prod_vars
@@ -434,8 +473,9 @@ intervalaverage <- function(x,
                    "xminstart","xmaxend"))
 
   if(verbose){
-  print("everything else:")
-  print(proc.time()-xx)}
+    print("everything else:")
+    print(proc.time()-xx)
+  }
 
   q[]
   }
