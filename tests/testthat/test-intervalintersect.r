@@ -1,13 +1,10 @@
 
-if(FALSE){
 #full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
 test_that("intervalintersect",{
 set.seed(100)
 
-  for(i in 1:3){
+
 ##leverage the structure of the example from the vignette for some tests
-  ##smaller dataset but run multiple times
-      #(fewer observations, shorter exposure and address period)
 exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
   data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=500),
              end=seq(as.Date("2000-01-07"),by=7,length=500),pm25=rnorm(4,mean=15),
@@ -135,8 +132,6 @@ z <- intervalintersect(x=exposure_dataset3,
 
 
   expect_equal(p_expanded,z_expanded)
-  gc()
-}
+
 
 })
-}
