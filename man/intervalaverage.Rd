@@ -46,6 +46,8 @@ internal checks to make sure x intervals are non-overlapping within
 groups defined by group_vars. #'  intervals in x must be non-overlapping,
 but you may want to skip this check if you've  already checked this because
 it is computationally intensive for large datasets.}
+
+\item{verbose}{set to TRUE to include timings}
 }
 \value{
 returns a data.table object.
@@ -104,7 +106,9 @@ unfamiliar with this package you could use \code{as.data.frame(x)},
 as the inputs and similarly coerce the result from a data.table back to a
 data.frame using \code{as.data.frame()}
 
-the data.table keys of \code{x} and \code{y} (and therefore row order) may be altered.
+x and y are not copied but rather passed by reference to function internals
+to save memory in the case of very large datasets.
+the data.table keys of \code{x} and \code{y} (and therefore row order) will be altered.
 This is a compromise
 to avoid unnecessary copying and/or unnecessary rekeying when dealing with
 large x and y tables. \cr
