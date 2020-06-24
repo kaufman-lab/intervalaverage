@@ -425,7 +425,7 @@ intervalaverage <- function(x,
   q <- EVAL(
     paste0(
       "z[,list(",
-      "xduration=sum(dur)"
+      "xduration=sum(dur)",
       ",",
       paste0(nobs_vars,"=sum(",temp_nobs_vars,",na.rm=TRUE)",collapse=","),
       ",",
