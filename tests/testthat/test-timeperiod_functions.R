@@ -4,7 +4,7 @@
 
 #####test isolateoverlaps ####
 test_that("isolateoverlaps", {
-
+ skip("skip")
   #isolateoverlaps simple example
   x <- data.table(
     start0 = c(1, 5, 5),
@@ -73,7 +73,7 @@ test_that("isolateoverlaps", {
 
 #####test CJ.dt for data.tables ####
 test_that("CJ.dt", {
-
+ skip("skip")
   ##simple example
   X <- data.table(x1=1:2,x2=2:3)
   Y <- data.table(y1=4:6,y2=5:7)
@@ -152,7 +152,7 @@ test_that("CJ.dt", {
 
 ####test intervalaveraging function #########
 test_that("intervalaveraging", {
-
+ skip("skip")
 
   ##averaging intervals where groups=NULL by default
   set.seed(32)
@@ -625,7 +625,7 @@ test_that("intervalaveraging", {
 
 
 test_that("intervalaveraging group 2", {
-
+ skip("skip")
 
   ####large dataset that's non-overlapping
   set.seed(18)
