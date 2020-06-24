@@ -8,7 +8,7 @@ exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
              no2=rnorm(4,mean=25) )
 } ))
 
-n_ppt <- 150
+n_ppt <- 100
 addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
 addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)]
 
@@ -100,8 +100,9 @@ z <- intervalintersect(x=exposure_dataset3,
   exposure_dataset3_expanded[,i:=NULL]
 
   addr_history[,i:=1:.N]
-  cat("addr_history exists", exists("addr_history"))
-  cat("names of addr_history: ", names(addr_history))
+
+  #addr_history_expanded  is a large object.
+    #if this test is failing on cran or travis, it could be because there's not enough memory
   addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
                                               location_id=rep(location_id,.N),
                                               addr_id=rep(addr_id,.N),
