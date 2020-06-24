@@ -4,7 +4,7 @@
 
 #####test isolateoverlaps ####
 test_that("isolateoverlaps", {
- skip("skip")
+
   #isolateoverlaps simple example
   x <- data.table(
     start0 = c(1, 5, 5),
@@ -73,7 +73,7 @@ test_that("isolateoverlaps", {
 
 #####test CJ.dt for data.tables ####
 test_that("CJ.dt", {
- skip("skip")
+
   ##simple example
   X <- data.table(x1=1:2,x2=2:3)
   Y <- data.table(y1=4:6,y2=5:7)
@@ -152,7 +152,6 @@ test_that("CJ.dt", {
 
 ####test intervalaveraging function #########
 test_that("intervalaveraging", {
- skip("skip")
 
   ##averaging intervals where groups=NULL by default
   set.seed(32)
@@ -695,18 +694,23 @@ test_that("intervalaveraging group 2", {
   expect_equal(ff1,ff2)
 
 
-  fg1 <- intervalaverage(x=test_x,
+  expect_warning(fg1 <- intervalaverage(x=test_x,
                          y=test_y,
                          interval_vars=c("start_date","end_date"),
                          group_vars = c("id1"),
                          value_vars=c("value"),
                          required_percentage = 0
-  )
+  ),"removing these duplicated rows automatically")
 
 
-  fg2 <- intervalaverage:::interval_weighted_avg_slow_f(test_x, test_y,
-                                                        interval_vars=c("start_date","end_date"),
-                                                        group_vars = c("id1"), value_vars=c("value"),required_percentage = 0)
+  expect_warning(fg2 <-
+    intervalaverage:::interval_weighted_avg_slow_f(test_x,
+                                                   test_y,
+                                                   interval_vars=c("start_date","end_date"),
+                                                   group_vars = c("id1"),
+                                                   value_vars=c("value"),
+                                                   required_percentage = 0
+    ),"removing these duplicated rows automatically")
 
 
 
