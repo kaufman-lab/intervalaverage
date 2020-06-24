@@ -1,13 +1,17 @@
+
+#full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
+test_that("intervalintersect",{
 set.seed(100)
 
-##leverage the example from the vignette for some tests
+
+##leverage the structure of the example from the vignette for some tests
 exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
-  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=1000),
-             end=seq(as.Date("2000-01-07"),by=7,length=1000),pm25=rnorm(4,mean=15),
+  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=500),
+             end=seq(as.Date("2000-01-07"),by=7,length=500),pm25=rnorm(4,mean=15),
              no2=rnorm(4,mean=25) )
 } ))
 
-n_ppt <- 150
+n_ppt <- 50
 addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
 addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)]
 
@@ -28,7 +32,7 @@ addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),by=locat
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.Date("1995-01-01"),as.Date("2017-01-01"),by=1)
+  dateseq <- seq(as.Date("1995-01-01"),as.Date("2008-01-01"),by=1)
   dates <- sort(sample(dateseq,n))
   #half of the time, make the last date "9999-01-01" which represents that the currently
   #lives at that location and we're carrying that assumption forward
@@ -58,11 +62,12 @@ test_that("example address history is non-overlapping",{
 })
 
 
-test_that("example exposures are non-overlapping",{
+#examples are non-overlapping
+
   expect_false(is.overlapping(exposure_dataset3,interval_vars=c("start","end"),
                               group_vars="location_id")
   )
-})
+
 
 z <- intervalintersect(x=exposure_dataset3,
                        y=addr_history,
@@ -74,17 +79,19 @@ z <- intervalintersect(x=exposure_dataset3,
                        interval_vars_out=c("start2","end2")
 )
 
+
+
 #if the address history and the exposure datasets are both non-overlapping
 #then the resulting intersect must also be non-overlapping
 
-test_that("intersection is non-overlapping",{
   expect_false(is.overlapping(z[,,],interval_vars=c("start2","end2"),
                               group_vars=c("location_id","ppt_id"))
   )
-})
 
 
-f <- function(){
+
+
+
 
   #actually manually do the intersect by expansion:
   exposure_dataset3[,i:= 1:.N]
@@ -96,6 +103,8 @@ f <- function(){
   exposure_dataset3_expanded[,i:=NULL]
 
   addr_history[,i:=1:.N]
+
+
   addr_history_expanded <- addr_history[,list(date=seq(addr_start,addr_end,by=1),
                                               location_id=rep(location_id,.N),
                                               addr_id=rep(addr_id,.N),
@@ -121,13 +130,8 @@ f <- function(){
   setkey(p_expanded,date, ppt_id, addr_id, location_id)
   setkey(z_expanded,date, ppt_id, addr_id, location_id)
 
-  all.equal(p_expanded,z_expanded)
-}
+
+  expect_equal(p_expanded,z_expanded)
 
 
-
-test_that("full validation of intervalintersect",{
-  skip_on_cran()
-  #skip("skippy")
-  expect_true(f())
 })
