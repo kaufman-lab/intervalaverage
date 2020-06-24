@@ -1,5 +1,7 @@
-set.seed(100)
+#full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
+test_that("intervalintersect",{
 
+set.seed(100)
 ##leverage the example from the vignette for some tests
 exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
   data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=1000),
@@ -74,18 +76,17 @@ z <- intervalintersect(x=exposure_dataset3,
                        interval_vars_out=c("start2","end2")
 )
 
+
+
 #if the address history and the exposure datasets are both non-overlapping
 #then the resulting intersect must also be non-overlapping
 
-test_that("intersection is non-overlapping",{
   expect_false(is.overlapping(z[,,],interval_vars=c("start2","end2"),
                               group_vars=c("location_id","ppt_id"))
   )
-})
 
 
-#full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
-test_that("intervalintersect w/ random sample compared to manual expansion method  ",{
+
 
   skip_on_cran()
 
