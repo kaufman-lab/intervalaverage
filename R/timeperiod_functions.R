@@ -78,16 +78,21 @@ cummax.Date <- function(x) as.Date(cummax(as.integer(x)),'1970-01-01')
 #' is.overlapping(z,c("start","end"),"id")
 #' @export
 is.overlapping <- function(x,interval_vars,group_vars=NULL){
- ...irow <- i....irow <-  NULL # due to NSE notes in R CMD check
+  if("._.irow"%in%names(x)){
+    stop("._.irow cannot be in names of x. rename this column. If you didn't expect this
+         column to be here, it may because this function previously crashed. You can
+         safely delete this column. Please submit a bug report to the github repo.")
+  }
+ ._.irow <- i.._.irow <-  NULL # due to NSE notes in R CMD check
  k <- data.table::key(x)
  data.table::setkeyv(x,c(group_vars,interval_vars))
- stopifnot(!"...irow"%in%names(x))
- stopifnot(!"i....irow"%in%names(x))
- x[,...irow:=1:nrow(x)]
+ stopifnot(!"._.irow"%in%names(x))
+ stopifnot(!"i_._.irow"%in%names(x))
+ x[,._.irow:=1:nrow(x)]
  z <- data.table::foverlaps(x,x)
- out <- z[...irow!=i....irow]
+ out <- z[._.irow!=i.._.irow]
  data.table::setkeyv(x,k)
- x[, ...irow:=NULL]
+ x[, ._.irow:=NULL]
  x[]
  nrow(out)!=0
 }
@@ -192,7 +197,7 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
                                     ){
   # due to NSE notes in R CMD check:
   xminstar <- xmaxend <- xduration <- yduration <-
-    interval_end <- interval_start <- dur <- ..group_vars <- ..interval_vars <-  NULL
+    interval_end <- interval_start <- dur  <-  NULL
   stopifnot(data.table::is.data.table(x))
   stopifnot(data.table::is.data.table(y))
 
@@ -237,17 +242,17 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
     stop("columns corresponding to interval_vars cannot be missing in y")
   }
 
-  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)=="Date"})),.SDcols=interval_vars]){
+  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate","Date")})),.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or Date")
   }
-  if(x[,class(.SD[[1]])!=class(.SD[[2]]),.SDcols=interval_vars]){
+  if(x[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of the same class")
   }
 
-  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("Date"))})),.SDcols=interval_vars]){
+  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("IDate","Date"))})),.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in y of class integer or Date")
   }
-  if(y[,class(.SD[[1]])!=class(.SD[[2]]),.SDcols=interval_vars]){
+  if(y[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in y of the same class")
   }
 
@@ -273,16 +278,16 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
   }
 
   #check for exact overlaps in x
-  if(sum(duplicated(x[,c(..group_vars,..interval_vars)]))!=0){
-    stop("sum(duplicated(x[,c(..group_vars,..interval_vars)]))!=0 is not TRUE.
+  if(sum(duplicated(x[,c(group_vars,interval_vars),with=FALSE]))!=0){
+    stop("sum(duplicated(x[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups.
          If you wish to average these together, then do this first")
   }
 
 
-  ydups <- duplicated(y[,c(..group_vars,..interval_vars)])
+  ydups <- duplicated(y[,c(group_vars,interval_vars),with=FALSE])
   if(sum(ydups)!=0){
-    warning("sum(duplicated(y[,c(..group_vars,..interval_vars)]))!=0 is not TRUE.
+    warning("sum(duplicated(y[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups of y.
          removing these duplicated rows automatically")
     y <- y[!ydups]
@@ -432,12 +437,13 @@ intervalaverage <- function(x, y,interval_vars,value_vars, group_vars=NULL,
 
 
 
-#slower algorithm. used for error checking since this is the simpler approach and less likely to have errors.
+#slower algorithm. used for testing since this is the simpler approach and less likely to have errors.
 #Not recommended for large datasets since this expands the data into a row for every increment.
+#not exported
 interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_vars=NULL,
                                          required_percentage=100,skip_overlap_check=FALSE){
 
-  xminstart <- xmaxend <- ..interval_vars <- ..group_vars <- NULL
+  xminstart <- xmaxend <- NULL
   EVAL <- function(...)eval(parse(text=paste0(...)))
 
 
@@ -451,16 +457,16 @@ interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_va
   }
 
   #check for exact overlaps
-  if(sum(duplicated(x[,c(..group_vars,..interval_vars)]))!=0){
-    stop("sum(duplicated(x[,c(..group_vars,..interval_vars)]))!=0 is not TRUE.
+  if(sum(duplicated(x[,c(group_vars,interval_vars),with=FALSE]))!=0){
+    stop("sum(duplicated(x[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups.
          If you wish to average these together, then do this first")
   }
 
 
-  ydups <- duplicated(y[,c(..group_vars,..interval_vars)])
+  ydups <- duplicated(y[,c(group_vars,interval_vars),with=FALSE])
   if(sum(ydups)!=0){
-    warning("sum(duplicated(y[,c(..group_vars,..interval_vars)]))!=0 is not TRUE.
+    warning("sum(duplicated(y[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups of y.
          removing these duplicated rows automatically")
     y <- y[!ydups]
@@ -566,7 +572,7 @@ interval_weighted_avg_slow_f <- function(x, y,interval_vars,value_vars, group_va
       )
     )
 
-  if(class(x[[interval_vars[1]]])=="Date"){
+  if(any(class(x[[interval_vars[1]]])%in%c("IDate","Date"))){
     minmaxtable[, xminstart:=as.Date(xminstart,origin="1970-01-01")]
     minmaxtable[, xmaxend:=as.Date(xmaxend,origin="1970-01-01")]
   }

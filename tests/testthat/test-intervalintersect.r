@@ -125,9 +125,8 @@ f <- function(){
 }
 
 
-
-test_that("full validation of intervalintersect",{
+#full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
+test_that("intervalintersect w/ random sample compared to manual expansion method  ",{
   skip_on_cran()
-  #skip("skippy")
   expect_true(f())
 })

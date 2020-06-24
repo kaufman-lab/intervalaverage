@@ -1,5 +1,9 @@
 # intervalaverage
 
+<!-- badges: start -->
+  [![Travis build status](https://travis-ci.com/kaufman-lab/intervalaverage.svg?branch=master)](https://travis-ci.com/kaufman-lab/intervalaverage)
+  <!-- badges: end -->
+
 To install
 
 ```
