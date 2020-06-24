@@ -88,7 +88,7 @@ z <- intervalintersect(x=exposure_dataset3,
 
 
 
-  skip_on_cran()
+
 
   #actually manually do the intersect by expansion:
   exposure_dataset3[,i:= 1:.N]
