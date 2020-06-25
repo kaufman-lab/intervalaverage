@@ -6,16 +6,16 @@ Authors@R:
            family = "Young",
            role = c("aut", "cre"),
            email = "myoung3@uw.edu")
-Description: This function expands on data.table::foroverlaps to perform fast
-	and memory efficient time-weighted averages of values measures over intervals 
-	into new arbitrary intervals. This operation is useful in the context any large
-	datasets where measures are stored representing a value occuring for the duration
-	of an interval, but was written to deal with air pollution data recorded or predicted
-	as time-integrated averages over repeating periods. Often this data needs to be
-	shifted to non-aligned periods or averaged up to the calendar year (for example). 
-	Because this package makes careful use of the highly-optimized data.table package, 
-	the intervalaverage function is considerably faster than similar algorithms 
-	implemented in SQL.
+Description: Perform fast and memory efficient time-weighted averaging of values 
+    measured over intervals into new arbitrary intervals. 
+	This package is useful in the context of data measured or represented
+	as constant values over intervals on a one-dimensional discrete axis 
+	(e.g. time-integrated averages of a curve over defined periods). 
+	The intervalaverage package was written specifically to deal with air 
+	pollution data recorded or predicted as averages over sampling periods. 
+	Data in this format often needs to be shifted to non-aligned periods 
+	or averaged up to longer durations 	(e.g. averaging data measured over 
+	sequential non-overlapping periods to calendar years). 
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
