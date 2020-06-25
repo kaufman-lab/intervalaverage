@@ -83,7 +83,7 @@ which does not align cleanly with the intervals in x:
 
 Representing the PM25 measurements over the exact intervals in y is not
 strictly possible, since each y interval contains two
-partially-overlapping x intervals.
+x intervals which only partially overlap.
 
 While there are several ways to compromise and approximate a
 representation of x over the periods in y, one reasonable approach is to
