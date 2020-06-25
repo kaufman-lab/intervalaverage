@@ -1,8 +1,9 @@
 ---
-title: "technical_overview"
+title: "Technical overview of the intervalaverage function"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{technical_overview}
+  %\VignetteIndexEntry{intervalaverage-technicaloverview}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
