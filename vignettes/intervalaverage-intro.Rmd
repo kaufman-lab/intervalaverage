@@ -1,5 +1,6 @@
 ---
-title: "intervalaverage-intro"
+title: "Introduction to intervalaverage"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{intervalaverage-intro}
@@ -9,7 +10,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Introduction to the intervalaverage package
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup,echo=FALSE,message=FALSE}
 library(intervalaverage)
 set.seed(1)
 ```
