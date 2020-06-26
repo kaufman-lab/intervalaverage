@@ -19,7 +19,8 @@ intervalintersect(
 where these intervals are non-overlapping within ppt_id}
 
 \item{interval_vars}{Either a length-2 character vector denoting column names in both x and y or a named
-length-2 character vector where the names are column names in x and the values are column names in y.}
+length-2 character vector where the names are column names in x and the values are column names in y.
+these columns in x and y must all be of the same class and either be integer or IDate.}
 
 \item{group_vars}{NULL, or either a character vector denoting the column name(s) in x and y,
 or a named character vector where the name is the column name in x and the value is the column name in y.
@@ -46,6 +47,8 @@ where the exposures are stored as the average value over a set of intervals) ret
 exposure intervals at addresses clipped to exactly when the participant lived at that address.
 }
 \details{
+All intervals are treated as inclusive.
+
 Technically speaking this is just an inner cartesian join where the last two join variables are
 doing a non-equi join for partial overlaps. Then each interval intersect is calculated using max and min.
 
@@ -72,11 +75,11 @@ this function is basically just a wrapper for the following code:\cr \cr
 
 y <- data.table(addr_id=c(1,2,2,3,5),
 ppt_id=c(1,1,1,2,2),
-addr_start=c(1,10,12,1,1),
-addr_end=c(9,11,14,17,10))
+addr_start=c(1L,10L,12L,1L,1L),
+addr_end=c(9L,11L,14L,17L,10L))
 x <- data.table(addr_id=rep(1:4,each=3),
-exposure_start=rep(c(1,8,15),times=4),
-exposure_end=rep(c(7,14,21),times=4),
+exposure_start=rep(c(1L,8L,15L),times=4),
+exposure_end=rep(c(7L,14L,21L),times=4),
 exposure_value=c(rnorm(12))
 )
 intervalintersect(x,y,
@@ -84,8 +87,8 @@ interval_vars=c(exposure_start="addr_start",exposure_end="addr_end"),
 "addr_id")
 y2 <- data.table(addr_id=c(1,2,2,2,3),
 ppt_id=c(1,1,1,1,2),
-addr_start=c(1,2,3,4,1),
-addr_end=c(9,12,13,8,10))
+addr_start=c(1L,2L,3L,4L,1L),
+addr_end=c(9L,12L,13L,8L,10L))
 
 #intervalintersect will still work when there are overlapping intervals within a table:
 is.overlapping(y2,interval_vars =c("addr_start","addr_end") ,group_vars="addr_id")
@@ -96,8 +99,8 @@ intervalintersect(x,y2,
 
 
 x2 <- data.table(addr_id=rep(1:4,each=3),
-exposure_start=rep(c(1,7,14),times=4),
-                exposure_end=rep(c(7,14,21),times=4),
+exposure_start=rep(c(1L,7L,14L),times=4),
+                exposure_end=rep(c(7L,14L,21L),times=4),
 exposure_value=c(rnorm(12))
 )
 is.overlapping(x2,interval_vars =c("exposure_start","exposure_end") ,group_vars="addr_id")

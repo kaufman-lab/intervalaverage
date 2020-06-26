@@ -14,15 +14,16 @@ isolateoverlaps(
 \arguments{
 \item{x}{A data.table}
 
-\item{interval_vars}{A length-2 character vector denoting column names in x}
+\item{interval_vars}{A length-2 character vector denoting column names in x.
+these columns must be of the same class and be integer or IDate.}
 
 \item{group_vars}{NULL, or a character vector denoting column names in x.
 These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 within categories defined by the combination of the group variables.}
 
-\item{interval_vars_out}{The column names of the interval columns in the return data.table.
+\item{interval_vars_out}{The desired column names of the interval columns in the return data.table.
 By default the return table will contain columns \code{c("start","end")}.
-If x already contain columns with thos names,
+If x already contains columns with those names,
 you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x.
 Or you rename columns in x to not contain columns named \code{c("start","end")}.}
 }
@@ -36,14 +37,15 @@ with other in intervals (optionally, within groups). Return a table containing t
 table, with sections of exact overlap separated from sections of non-overlap.
 }
 \details{
+All intervals are treated as inclusive.
 x is not copied but rather passed by reference to function internals so save memory in the case of very large datasets.
 The key of x  may be altered if the function returns an error.
 }
 \examples{
 
 x2 <- data.table(addr_id=rep(1:4,each=3),
-                exposure_start=rep(c(1,7,14),times=4),
-exposure_end=rep(c(7,14,21),times=4),
+                exposure_start=rep(c(1L,7L,14L),times=4),
+exposure_end=rep(c(7L,14L,21L),times=4),
 exposure_value=c(rnorm(12))
 )
 x2z <- isolateoverlaps(x2,interval_vars=c("exposure_start","exposure_end"),group_vars=c("addr_id"))

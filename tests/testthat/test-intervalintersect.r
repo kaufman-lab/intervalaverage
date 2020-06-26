@@ -1,13 +1,14 @@
 
 #full validation of intervalintersect via comparison with manual expansion of every time point on a random sample
 test_that("intervalintersect",{
-set.seed(100)
+
+  set.seed(100)
 
 
 ##leverage the structure of the example from the vignette for some tests
 exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
-  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=500),
-             end=seq(as.Date("2000-01-07"),by=7,length=500),pm25=rnorm(4,mean=15),
+  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7L,length=500),
+             end=seq(as.IDate("2000-01-07"),by=7L,length=500),pm25=rnorm(4,mean=15),
              no2=rnorm(4,mean=25) )
 } ))
 
@@ -32,12 +33,12 @@ addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),by=locat
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.Date("1995-01-01"),as.Date("2008-01-01"),by=1)
+  dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2008-01-01"),by=1L)
   dates <- sort(sample(dateseq,n))
   #half of the time, make the last date "9999-01-01" which represents that the currently
   #lives at that location and we're carrying that assumption forward
   if(runif(1)>.5){
-    dates[length(dates)] <- as.Date("9999-01-01")
+    dates[length(dates)] <- as.IDate("9999-01-01")
   }
   dates
 }

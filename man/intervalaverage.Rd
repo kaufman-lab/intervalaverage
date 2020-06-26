@@ -16,8 +16,9 @@ intervalaverage(
 )
 }
 \arguments{
-\item{x}{a data.table object containing measuresments over intervals which must be
-completely non-overlapping within
+\item{x}{a data.table containing values measured over intervals. see interval_vars parameter
+for how to specify interval columns and value_vars for how to specify value columns.
+intervals in x must must be completely non-overlapping within
 groups defined by group_vars. if group_vars is specified (non-NULL), BOTH x and y must
 contain columns specified in group_vars.}
 
@@ -27,7 +28,7 @@ if group_vars is specified (non-NULL),  y must contains those group_vars column 
 and this would allow different averaging period for each subject/monitor/location.}
 
 \item{interval_vars}{a length-2 character vector of column names in both x and y.
-these columns in x and y should be all numeric or all Dates.}
+these columns in x and y must all be of the same class and either be integer or IDate.}
 
 \item{value_vars}{a character vector of column names in x. This specifies
 the columns to be averaged.}
@@ -87,17 +88,13 @@ this does not pay attention to whether the interval in x had non-missing value_v
 \description{
 \code{intervalaverage} is a function which takes values recorded over
 non-overlapping intervals and averages them to defined intervals, possibly within
-groups (individuals/monitors/locations/etc). The function accepts an arbitrary
-number of value variables simultaneously. It is written to be fast and memory
-efficient.
-Typically this function is used to average values measured over short intervals
-to longer periods.
-But this function could also be used to downsample (without smoothing).
-Ie, "Averages" can be computed over periods shorter than the intervals over
-which values were measured
-(resulting in the original value split into multiple intervals).
+groups (individuals/monitors/locations/etc).  This function is used to average
+values measured over short intervals and/or to downsample (without smoothing) values to
+even shorter intervals or shift (via averaging) the data to a different schedule.
 }
 \details{
+All intervals are treated as inclusive.
+
 this function uses the data.table package. The input tables and return are
 objects of class data.table.
 data.tables are (mostly) just fancy data.frames, so if you're

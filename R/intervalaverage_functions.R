@@ -58,7 +58,6 @@ CJ.dt <- function(...,groups=NULL) {
 }
 
 
-cummax.Date <- function(x) as.Date(cummax(as.integer(x)),'1970-01-01')
 
 #' Test for self-overlap
 #'
@@ -103,15 +102,11 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #'
 #' \code{intervalaverage} is a function which takes values recorded over
 #' non-overlapping intervals and averages them to defined intervals, possibly within
-#' groups (individuals/monitors/locations/etc). The function accepts an arbitrary
-#' number of value variables simultaneously. It is written to be fast and memory
-#' efficient.
-#' Typically this function is used to average values measured over short intervals
-#' to longer periods.
-#' But this function could also be used to downsample (without smoothing).
-#' Ie, "Averages" can be computed over periods shorter than the intervals over
-#' which values were measured
-#' (resulting in the original value split into multiple intervals).
+#' groups (individuals/monitors/locations/etc).  This function is used to average
+#' values measured over short intervals and/or to downsample (without smoothing) values to
+#' even shorter intervals or shift (via averaging) the data to a different schedule.
+#'
+#' All intervals are treated as inclusive.
 #'
 #' this function uses the data.table package. The input tables and return are
 #' objects of class data.table.
@@ -134,8 +129,9 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #'
 #'
 #'
-#' @param x a data.table object containing measuresments over intervals which must be
-#' completely non-overlapping within
+#' @param x a data.table containing values measured over intervals. see interval_vars parameter
+#' for how to specify interval columns and value_vars for how to specify value columns.
+#' intervals in x must must be completely non-overlapping within
 #' groups defined by group_vars. if group_vars is specified (non-NULL), BOTH x and y must
 #' contain columns specified in group_vars.
 #' @param y a data.table object containing intervals over which you'd like averages
@@ -143,7 +139,7 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #' if group_vars is specified (non-NULL),  y must contains those group_vars column names,
 #'  and this would allow different averaging period for each subject/monitor/location.
 #' @param interval_vars a length-2 character vector of column names in both x and y.
-#' these columns in x and y should be all numeric or all Dates.
+#' these columns in x and y must all be of the same class and either be integer or IDate.
 #' @param value_vars a character vector of column names in x. This specifies
 #' the columns to be averaged.
 #' @param group_vars a character vector of column names in x and in y
@@ -247,15 +243,15 @@ intervalaverage <- function(x,
     stop("columns corresponding to interval_vars cannot be missing in y")
   }
 
-  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate","Date")})),.SDcols=interval_vars]){
-    stop("interval_vars must correspond to columns in x of class integer or Date")
+  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in x of class integer or IDate")
   }
   if(x[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of the same class")
   }
 
-  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("IDate","Date"))})),.SDcols=interval_vars]){
-    stop("interval_vars must correspond to columns in y of class integer or Date")
+  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("IDate"))})),.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in y of class integer or IDate")
   }
   if(y[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in y of the same class")
@@ -275,7 +271,7 @@ intervalaverage <- function(x,
   }
 
 
-  #stop if start_dates are before end dates
+  #stop if interval starts are before interval ends
   if(x[, sum(.SD[[2]]-.SD[[1]] <0)!=0,.SDcols=interval_vars]){
     stop("there exist values in x[[interval_vars[1] ]] that are
          less than corresponding values in  x[[interval_vars[2] ]].
@@ -495,6 +491,21 @@ interval_weighted_avg_slow_f <- function(x,
                                          verbose=FALSE){
 
   xminstart <- xmaxend <- NULL
+
+  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in x of class integer or IDate")
+  }
+  if(x[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in x of the same class")
+  }
+
+  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("IDate"))})),.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in y of class integer or IDate")
+  }
+  if(y[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in y of the same class")
+  }
+
   EVAL <- function(...)eval(parse(text=paste0(...)))
 
 
@@ -623,9 +634,9 @@ interval_weighted_avg_slow_f <- function(x,
       )
     )
 
-  if(any(class(x[[interval_vars[1]]])%in%c("IDate","Date"))){
-    minmaxtable[, xminstart:=as.Date(xminstart,origin="1970-01-01")]
-    minmaxtable[, xmaxend:=as.Date(xmaxend,origin="1970-01-01")]
+  if(any(class(x[[interval_vars[1]]])%in%c("IDate"))){
+    minmaxtable[, xminstart:=as.IDate(xminstart,origin="1970-01-01")]
+    minmaxtable[, xmaxend:=as.IDate(xmaxend,origin="1970-01-01")]
   }
 
 
@@ -665,18 +676,19 @@ interval_weighted_avg_slow_f <- function(x,
 #' with other in intervals (optionally, within groups). Return a table containing the interval span of of the original
 #' table, with sections of exact overlap separated from sections of non-overlap.
 #'
-#'
+#' All intervals are treated as inclusive.
 #' x is not copied but rather passed by reference to function internals so save memory in the case of very large datasets.
 #' The key of x  may be altered if the function returns an error.
 #'
 #' @param x A data.table
-#' @param interval_vars A length-2 character vector denoting column names in x
+#' @param interval_vars A length-2 character vector denoting column names in x.
+#' these columns must be of the same class and be integer or IDate.
 #' @param group_vars NULL, or a character vector denoting column names in x.
 #'  These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 #'  within categories defined by the combination of the group variables.
-#' @param interval_vars_out The column names of the interval columns in the return data.table.
+#' @param interval_vars_out The desired column names of the interval columns in the return data.table.
 #' By default the return table will contain columns \code{c("start","end")}.
-#' If x already contain columns with thos names,
+#' If x already contains columns with those names,
 #' you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x.
 #' Or you rename columns in x to not contain columns named \code{c("start","end")}.
 #' @return A data.table with columns \code{interval_vars_out} which denote the start and
@@ -686,8 +698,8 @@ interval_weighted_avg_slow_f <- function(x,
 #' @examples
 #'
 #'x2 <- data.table(addr_id=rep(1:4,each=3),
-#'                 exposure_start=rep(c(1,7,14),times=4),
-#'exposure_end=rep(c(7,14,21),times=4),
+#'                 exposure_start=rep(c(1L,7L,14L),times=4),
+#'exposure_end=rep(c(7L,14L,21L),times=4),
 #'exposure_value=c(rnorm(12))
 #')
 #'x2z <- isolateoverlaps(x2,interval_vars=c("exposure_start","exposure_end"),group_vars=c("addr_id"))
@@ -702,6 +714,12 @@ interval_weighted_avg_slow_f <- function(x,
 isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c("start","end")){
   EVAL <- function(...)eval(parse(text=paste0(...)))
 
+  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in x of class integer or IDate")
+  }
+  if(x[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=interval_vars]){
+    stop("interval_vars must correspond to columns in x of the same class")
+  }
 
   xkey <- data.table::key(x)
 
@@ -742,7 +760,6 @@ isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c(
   #the last row is missing because you can't get the next row when there aren't any more rows!
    #we don't need that row where end_next is missing so exclude it.
   #when data.table veresion 1.12.3 you can use fifelse to avoid coercing dates to numeric
-  #in the mean time use dplyr if_else
   temp <- EVAL("xd[,.SD[!is.na(",end_next_var,"),list(
    ",interval_vars[1],"=data.table::fifelse(!",is_end_var,",",value_var,",",value_var,"+1L),
     ",interval_vars[2],"=data.table::fifelse(!",end_next_var,",",value_next_var,"-1L,",value_next_var,")

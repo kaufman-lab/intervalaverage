@@ -9,6 +9,7 @@
 #' where the exposures are stored as the average value over a set of intervals) returning the set of
 #' exposure intervals at addresses clipped to exactly when the participant lived at that address.
 #'
+#'  All intervals are treated as inclusive.
 #'
 #'Technically speaking this is just an inner cartesian join where the last two join variables are
 #' doing a non-equi join for partial overlaps. Then each interval intersect is calculated using max and min.
@@ -39,6 +40,7 @@
 #'  where these intervals are non-overlapping within ppt_id
 #' @param interval_vars Either a length-2 character vector denoting column names in both x and y or a named
 #'  length-2 character vector where the names are column names in x and the values are column names in y.
+#' these columns in x and y must all be of the same class and either be integer or IDate.
 #' @param group_vars NULL, or either a character vector denoting the column name(s) in x and y,
 #'  or a named character vector where the name is the column name in x and the value is the column name in y.
 #'  This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
@@ -56,11 +58,11 @@
 #'
 #'y <- data.table(addr_id=c(1,2,2,3,5),
 #'ppt_id=c(1,1,1,2,2),
-#'addr_start=c(1,10,12,1,1),
-#'addr_end=c(9,11,14,17,10))
+#'addr_start=c(1L,10L,12L,1L,1L),
+#'addr_end=c(9L,11L,14L,17L,10L))
 #'x <- data.table(addr_id=rep(1:4,each=3),
-#'exposure_start=rep(c(1,8,15),times=4),
-#'exposure_end=rep(c(7,14,21),times=4),
+#'exposure_start=rep(c(1L,8L,15L),times=4),
+#'exposure_end=rep(c(7L,14L,21L),times=4),
 #'exposure_value=c(rnorm(12))
 #')
 #'intervalintersect(x,y,
@@ -68,8 +70,8 @@
 #'"addr_id")
 #'y2 <- data.table(addr_id=c(1,2,2,2,3),
 #'ppt_id=c(1,1,1,1,2),
-#'addr_start=c(1,2,3,4,1),
-#'addr_end=c(9,12,13,8,10))
+#'addr_start=c(1L,2L,3L,4L,1L),
+#'addr_end=c(9L,12L,13L,8L,10L))
 #'
 #'#intervalintersect will still work when there are overlapping intervals within a table:
 #'is.overlapping(y2,interval_vars =c("addr_start","addr_end") ,group_vars="addr_id")
@@ -80,8 +82,8 @@
 #'
 #'
 #'x2 <- data.table(addr_id=rep(1:4,each=3),
-#'exposure_start=rep(c(1,7,14),times=4),
-#'                 exposure_end=rep(c(7,14,21),times=4),
+#'exposure_start=rep(c(1L,7L,14L),times=4),
+#'                 exposure_end=rep(c(7L,14L,21L),times=4),
 #'exposure_value=c(rnorm(12))
 #')
 #'is.overlapping(x2,interval_vars =c("exposure_start","exposure_end") ,group_vars="addr_id")
@@ -115,12 +117,28 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
                            interval_vars_out=c("start","end")
                            ){
 
+  x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
+  y_interval_vars <- interval_vars
+
+  if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=x_interval_vars]){
+    stop("interval_vars must correspond to columns in x of class integer or IDate")
+  }
+  if(x[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=x_interval_vars]){
+    stop("interval_vars must correspond to columns in x of the same class")
+  }
+
+  if(y[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){any(class(x)%in%c("IDate"))})),.SDcols=y_interval_vars]){
+    stop("interval_vars must correspond to columns in y of class integer or IDate")
+  }
+  if(y[,class(.SD[[1]])[1]!=class(.SD[[2]])[1],.SDcols=y_interval_vars]){
+    stop("interval_vars must correspond to columns in y of the same class")
+  }
+
   if( any(interval_vars_out %in% names(x))|any(interval_vars_out %in% names(y)) ){
     stop("interval_vars_out cannot be names in x or y. choose a different output name")
   }
 
-  x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
-  y_interval_vars <- interval_vars
+
 
   x_group_vars <- if(!is.null(names(group_vars))){names(group_vars)}else{group_vars}
   y_group_vars <- group_vars
