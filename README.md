@@ -39,7 +39,7 @@ Right now, the only way to install the package is from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE))
+devtools::install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
 ```
 
 ## Example

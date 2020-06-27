@@ -14,15 +14,16 @@ isolateoverlaps(
 \arguments{
 \item{x}{A data.table}
 
-\item{interval_vars}{A length-2 character vector denoting column names in x}
+\item{interval_vars}{A length-2 character vector denoting column names in x.
+these columns must be of the same class and be integer or IDate.}
 
 \item{group_vars}{NULL, or a character vector denoting column names in x.
 These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 within categories defined by the combination of the group variables.}
 
-\item{interval_vars_out}{The column names of the interval columns in the return data.table.
+\item{interval_vars_out}{The desired column names of the interval columns in the return data.table.
 By default the return table will contain columns \code{c("start","end")}.
-If x already contain columns with thos names,
+If x already contains columns with those names,
 you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x.
 Or you rename columns in x to not contain columns named \code{c("start","end")}.}
 }
@@ -32,18 +33,26 @@ stop period for each new interval. This return table also contains columns in x.
 }
 \description{
 Given a set of intervals in a table, isolate sections of intervals that are overlapping
-with other in intervals (optionally, within groups). Return a table containing the interval span of of the original
-table, with sections of exact overlap separated from sections of non-overlap.
+with other in intervals (optionally, within groups). Returns a data.table that contains
+intervals which are mutually non-overlapping or exactly overlapping with other intervals
+(ie there are no partially overlapping intervals) (again, possibly within groups).  The original interval data is conserved
+such that for each interval/row in x, the return table has one or more
+non-overlapping intervals that together form the union of that original interval.
 }
 \details{
-x is not copied but rather passed by reference to function internals so save memory in the case of very large datasets.
-The key of x  may be altered if the function returns an error.
+All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
+
+x is not copied but rather passed by reference to function internals
+but the order of this data.tables is restored on function completion or error,
+setting the key of x explicitly via \code{setkeyv(x,c(group_vars,interval_vars))}
+will save the function from reordering the rows back
+to their original state.
 }
 \examples{
 
 x2 <- data.table(addr_id=rep(1:4,each=3),
-                exposure_start=rep(c(1,7,14),times=4),
-exposure_end=rep(c(7,14,21),times=4),
+                exposure_start=rep(c(1L,7L,14L),times=4),
+exposure_end=rep(c(7L,14L,21L),times=4),
 exposure_value=c(rnorm(12))
 )
 x2z <- isolateoverlaps(x2,interval_vars=c("exposure_start","exposure_end"),group_vars=c("addr_id"))

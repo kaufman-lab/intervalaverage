@@ -34,22 +34,24 @@ This package and vignette makes extensive use of `data.table`. If you're unfamil
 Consider the following dataset which represents average (predicted) pm2.5 exposure  and no2 exposure
 at some location over four sequential 7-day periods at the beginning of the year 2000:
 ```{r}
-exposure_dataset <- data.table(location_id=1, start=seq(as.Date("2000-01-01"),by=7,length=4),
-                end=seq(as.Date("2000-01-07"),by=7,length=4),pm25=rnorm(4,mean=15), no2=rnorm(4,mean=25))
+exposure_dataset <- data.table(location_id=1, start=seq(as.IDate("2000-01-01"),by=7,length=4),
+                end=seq(as.IDate("2000-01-07"),by=7,length=4),pm25=rnorm(4,mean=15), no2=rnorm(4,mean=25))
 exposure_dataset
 ```
+Note that the above intervals are stored as a column for the start of the interval and a column for the end of the interval.  For the purpose of this package, intervals are ALWAYS treated as closed (i.e. inclusive of start and end values) and the variables storing interval starts and ends must be discrete (e.g., class integer or IDate).
+
 
 If we wanted to calculate the average of the first two weeks of pm25 data, this would simply be the
 average of the two pm25 values for those weeks:
 ```{r}
-exposure_dataset[start %in% as.Date(c("2000-01-01","2000-01-08")),mean(pm25)]
+exposure_dataset[start %in% as.IDate(c("2000-01-01","2000-01-08")),mean(pm25)]
 ```
 
 But we wanted the average of the first 10 days of that pm25 data, we would need to take a weighted average 
 since the period from Jan 1 to Jan 10 doesn't align perfectly with the intervals over which the pm2.5
 data is recored:
 ```{r}
-exposure_dataset[start %in% as.Date(c("2000-01-01","2000-01-08")),weighted.mean(pm25,w=c(7/10,3/10))]
+exposure_dataset[start %in% as.IDate(c("2000-01-01","2000-01-08")),weighted.mean(pm25,w=c(7/10,3/10))]
 ```
 
 The `intervalaverage` package and specifically the `intervalaverage` function was written
@@ -60,8 +62,8 @@ the periods you'd like to average over.
 Let's create a dataset containing some periods we'd like average over:
 
 ```{r}
-averaging_periods <- data.table(start=seq(as.Date("2000-01-01"),by=10,length=3),
-                end=seq(as.Date("2000-01-10"),by=10,length=3))
+averaging_periods <- data.table(start=seq(as.IDate("2000-01-01"),by=10,length=3),
+                end=seq(as.IDate("2000-01-10"),by=10,length=3))
 averaging_periods
 ```
 
@@ -75,8 +77,7 @@ argument. And the variables in `exposure_dataset` that you want averages calcula
 via `value_vars`.
 
 ```{r}
-averaged_exposures <- intervalaverage(exposure_dataset,averaging_periods,
-                                      interval_vars=c("start","end"),value_vars=c("pm25","no2"))
+averaged_exposures <- intervalaverage(exposure_dataset,averaging_periods,                                      interval_vars=c("start","end"),value_vars=c("pm25","no2"))
 averaged_exposures[, list(start,end,pm25,no2)]
 ```
 The return value of the `intervalaverage` function is a `data.table`. Above I'm just displaying the first four columns of that return object.  Note that the value of the pm25 in the first row is what we calculated manually above, and the `start` and `end` columns in that row are indicating that that pm25
@@ -118,8 +119,8 @@ Typically we're dealing with more than one location at a time. Let's create a da
 ```{r}
 exposure_dataset2 <- rbindlist(lapply(1:3, function(z){
   data.table(location_id=z, 
-             start=seq(as.Date("2000-01-01"),by=7,length=4),
-             end=seq(as.Date("2000-01-07"),by=7,length=4),pm25=rnorm(4,mean=15),
+             start=seq(as.IDate("2000-01-01"),by=7,length=4),
+             end=seq(as.IDate("2000-01-07"),by=7,length=4),pm25=rnorm(4,mean=15),
              no2=rnorm(4,mean=25))} ))
 exposure_dataset2
 ```
@@ -172,8 +173,8 @@ with data which have intervals which do not overlap.  However, consider the foll
 the end day of a previous interval is the start day of the next interval:
 ```{r}
 exposure_dataset_overlapping <- rbindlist(lapply(1:3, function(z){
-  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=4),
-             end=seq(as.Date("2000-01-08"),by=7,length=4),pm25=rnorm(4,mean=15),
+  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7,length=4),
+             end=seq(as.IDate("2000-01-08"),by=7,length=4),pm25=rnorm(4,mean=15),
              no2=rnorm(4,mean=25) )
 } ))
 exposure_dataset_overlapping
@@ -231,8 +232,8 @@ First to make this more realistic, let's generate ~20 years of data at 2000 loca
 
 ```{r}
 exposure_dataset3 <- rbindlist(lapply(1:2000, function(z){
-  data.table(location_id=z, start=seq(as.Date("2000-01-01"),by=7,length=1000),
-                end=seq(as.Date("2000-01-07"),by=7,length=1000),pm25=rnorm(4,mean=15),
+  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7,length=1000),
+                end=seq(as.IDate("2000-01-07"),by=7,length=1000),pm25=rnorm(4,mean=15),
                 no2=rnorm(4,mean=25) )
   } ))
 ```
@@ -242,7 +243,7 @@ date as 3 years before that to define three-year intervals for every location.
 ```{r}
 averaging_periods3 <- data.table(location_id=1:2000,
                                  end=sample(
-                                   seq(as.Date("2001-01-01"),as.Date("2019-01-01"),by=1),
+                                   seq(as.IDate("2001-01-01"),as.IDate("2019-01-01"),by=1),
                                    2000
                                  )
 )
@@ -302,11 +303,11 @@ and how we might use this in exposure averaging. Consider the following address 
 ```{r,echo=FALSE}
 address_history0 <- data.table(addr_id=c(1,2,2,3,5),
                  ppt_id=c(1,1,1,2,2),
-                 addr_start=c(1,10,12,1,13),
-                 addr_end=c(9,11,14,12,15)) 
+                 addr_start=c(1L,10L,12L,1L,13L),
+                 addr_end=c(9L,11L,14L,12L,15L)) 
 exposure_dataset5 <- data.table(addr_id=rep(1:4,each=3),
-  exposure_start=rep(c(1,8,15),times=4),
-  exposure_end=rep(c(7,14,21),times=4),
+  exposure_start=rep(c(1L,8L,15L),times=4),
+  exposure_end=rep(c(7L,14L,21L),times=4),
   exposure_value=c(rnorm(12))
  )
 ```
@@ -337,7 +338,8 @@ participant, one row for `[1,7]` and a second row from `[8,9]`. This can be acco
 
 ```{r}
 
- exposure_addresss_table <- intervalintersect(exposure_dataset5,address_history0,
+ exposure_addresss_table <- intervalintersect(exposure_dataset5,
+                                              address_history0,
                 interval_vars=c(exposure_start="addr_start",exposure_end="addr_end"),
                 "addr_id")
 ```
@@ -396,12 +398,12 @@ I've generated intervals which are non-overlapping representing the particpant a
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.Date("1995-01-01"),as.Date("2017-01-01"),by=1)
+  dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2017-01-01"),by=1)
   dates <- sort(sample(dateseq,n))
   #half of the time, make the last date "9999-01-01" which represents that the currently
    #lives at that location and we're carrying that assumption forward
   if(runif(1)>.5){
-    dates[length(dates)] <- as.Date("9999-01-01") 
+    dates[length(dates)] <- as.IDate("9999-01-01") 
   }
   dates
 }
@@ -511,13 +513,3 @@ setkey(z,ppt_id,start2,end2)
 setkey(z_addr,ppt_id,start2,end2)
 all.equal(z,z_addr)
 ```
-
-
-
-
-##is intersects really a cartesian join? does it really not matter if you use location or address?
-##check example in sisters data
-##implement unit tests for intervalintersect
-##implement unit test for intervalaverage
-
-##read through comments for intervalaverage

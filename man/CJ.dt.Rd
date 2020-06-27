@@ -2,7 +2,7 @@
 % Please edit documentation in R/intervalaverage_functions.R
 \name{CJ.dt}
 \alias{CJ.dt}
-\title{a function to grid expand an arbitrary number of data.tables}
+\title{grid expand an arbitrary number of data.tables}
 \usage{
 CJ.dt(..., groups = NULL)
 }
@@ -13,8 +13,17 @@ CJ.dt(..., groups = NULL)
 column names of grouping vars in all of the data.tables}
 }
 \description{
-similar to CJ and expand.grid except for rows data.tables.
+similar to data.table::CJ and base::expand.grid except for rows of data.tables.
 }
 \details{
-coerce data.frames to data.tables first using \code{as.data.table()}  or \code{setDT()}
+CJ.dt pays no attention to the contents of each table. See examples.
+}
+\examples{
+#' CJ.dt(data.table(c(1,2,2),c(1,1,1)),data.table(c("a","b"),c("c","d")))
+#If you want to expand x to unique values of a non-unique columns in y
+x <- data.table(c(1,2,3),c("a","b","b"))
+y <- data.table(id=c(1,2,2,1,3),value=c(2,4,1,7,3))
+z <- CJ.dt(x, y[,list(id=unique(id))])
+#if you want to merge this back to y
+y[z,on="id",allow.cartesian=TRUE] #or z[y,on="id",allow.cartesian=TRUE]
 }
