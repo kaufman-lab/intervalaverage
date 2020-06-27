@@ -1,3 +1,8 @@
+# intervalaverage 0.0.0.9002 (Development)
+
+## BUG FIXES
+1 . Minor improvements in documentation (readme,intro vignette)
+
 # intervalaverage 0.0.0.9001 (Development)
 
 ## POTENTIALLY BREAKING CHANGES
