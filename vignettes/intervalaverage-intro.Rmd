@@ -226,7 +226,7 @@ intervalaverage(exposure_dataset_overlaps_averaged,averaging_periods2,interval_v
                 required_percentage = 75)[,list(location_id, start,end,pm25,no2)]
 ```
 
-## Averaging values measured over intervals: different averaging periods for diferent observations
+## Averaging values measured over intervals: different averaging periods for different observations
 Often we're interested in calculating averages over different periods for different locations.
 First to make this more realistic, let's generate ~20 years of data at 2000 locations:
 

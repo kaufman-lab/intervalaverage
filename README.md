@@ -65,6 +65,9 @@ Consider some PM2.5 data measured over periods occuring over a repeating
 #> 6:    36  42   18
 ```
 
+Note that the start and end columns define closed intervals
+(i.e. inclusive).
+
 Imagine that we would like these PM2.5 measurements to be represented
 over a different set of intervals, such as the following 7-day schedule
 which does not align cleanly with the intervals in x:
@@ -90,8 +93,8 @@ representation of x over the periods in y, one reasonable approach is to
 average all the values of PM2.5 in x occuring over the interval of y.
 But since the two overlap durations of the two x periods into a single y
 period are unequal, the PM2.5 values should be averaged in a way that
-takes the duration of overlap into account. I.e, we need a time-weighted
-average of values of x into intervals in y.
+takes the duration of overlap into account. That is to say, we need a
+time-weighted average of values of x into intervals in y.
 
 This is the exact purpose of the intervalaverage function:
 
@@ -107,7 +110,12 @@ This is the exact purpose of the intervalaverage function:
 #> 6:    38  44        NA         7         5         5        38      42
 ```
 
-The pm25 value of 10.571429 is equal to `(5/7)*10 + (2/7)*12`:
+(Note that the interval average package always assumes specified
+intervals are closed aka inclusive)
+
+The pm25 value of 10.571429 is equal to `(5/7)*10 + (2/7)*12`, where
+`5/7` and `2/7` are the respective time-weights of the the PM2.5 values
+based on their respective durations of overlap with the period `[3,9]`.
 
 ``` r
 identical(z[1,pm25], (5/7)*10 + (2/7)*12)
