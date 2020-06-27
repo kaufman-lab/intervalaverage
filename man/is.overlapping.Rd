@@ -4,7 +4,7 @@
 \alias{is.overlapping}
 \title{Test for self-overlap}
 \usage{
-is.overlapping(x, interval_vars, group_vars = NULL)
+is.overlapping(x, interval_vars, group_vars = NULL, verbose = FALSE)
 }
 \arguments{
 \item{x}{A data.table}
@@ -12,6 +12,8 @@ is.overlapping(x, interval_vars, group_vars = NULL)
 \item{interval_vars}{A length-2 character vector corresponding to column names of x which designate the starting and ending intervals}
 
 \item{group_vars}{NULL or a character vector corresponding to column names of x. overlap checks will occur within groups defined by the columns specified here.}
+
+\item{verbose}{prints additional information, default is FALSE}
 }
 \value{
 length-1 logical vector

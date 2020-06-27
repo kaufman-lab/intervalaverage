@@ -28,8 +28,10 @@ length(unique(addr_history$location_id))
 
 #also note that it's possible for different participants to live at the same address.
 addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),by=location_id][,sum(loc_with_more_than_one_ppt)]
-#Because of the way I generated this data, it's way more common than you'd expect in a real cohort
-#but it does happen especially in cohorts with familial recruitment or people living in nursing home complexes.
+#Because of the way I generated this data,
+ #it's way more common than you'd expect in a real cohort
+#but it does happen especially in cohorts
+ #with familial recruitment or people living in nursing home complexes.
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)

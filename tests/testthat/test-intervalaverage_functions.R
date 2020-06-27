@@ -41,6 +41,7 @@ test_that("isolateoverlaps", {
   setnames(x,names(x),c("start0","end0"))
   x[, id1:=rbinom(n,3,prob=.3)]
   x[, id2:=rbinom(n,7,prob=.5)]
+  x[, rnow:=1:.N]
   xd <- isolateoverlaps(x,interval_vars=c("start0","end0"),group_vars=c("id1","id2"))
 
   ##check that the union of the new intervals
@@ -54,13 +55,28 @@ test_that("isolateoverlaps", {
     sum(duplicated(.SD))==0) #within original intervals and grouping variables, no duplicated new intervals
   },by=c("id1","id2", "start0","end0"),.SDcols=c("start","end")][,all(V1)])
 
+  expect_true(xd[,list(V1=all(start0[1]==start0&end0[1]==end0)),by=rnow][,all(V1)])
+  expect_true(xd[,list(V1=identical(seq(min(start),max(end)),seq(start0[1],end0[1]))),by=rnow][,all(V1)])
+
+  #grouping by rows in x, take every row in x and expand the start0 to end0, combine all those
+  #expanded values into a single vector, sort that,
+   #and compare that to the original expanded inteval
+  system.time(expect_true(xd[,list(V1=identical(
+                         sort(unlist(mapply(SIMPLIFY=FALSE,start,end,FUN=function(s,e){
+                             seq(s,e)
+                         }))),
+                         seq(start0[1],end0[1]))
+  ),
+  by=rnow][,all(V1)]))
 
 
-
-  #make sure that *every* original start or end point in x is either a start or end point for the new start/end variables in xd,
-  #if those original start/end dates overlap with the new start dates at all (within groups)
-  #if value is between start and end but not exactly start or end, this means new start/end is missing a cut
-  x_l <- melt(x,id.vars=c("id1","id2"))
+  #make sure that *every* original start or end point in x is either a start or end point
+   #for the new start/end variables in xd,
+  #if those original start/end dates overlap with
+    #the new start dates at all (within groups)
+  #if value is between start and end but not exactly start or end,
+   #this means new start/end is missing a cut
+  x_l <- melt(x,id.vars=c("id1","id2"),measure.vars=c("start0","end0"))
   x_l[,value2:=value]
   setkey(x_l, id1,id2,value,value2)
   setkey(xd, id1,id2,start,end)
@@ -147,7 +163,40 @@ test_that("CJ.dt", {
 
 
 
+test_that("intervalaveraging restores state", {
+  #averaging intervals longer than observed period
+  set.seed(72)
+  a_start_date <- seq(structure(10590L, class = c("IDate", "Date")),
+                      structure(17163L, class = c("IDate", "Date")),by=7L)
 
+  a0 <- CJ(id1=1:3,id2=1:100, start_date=a_start_date)
+  a0[, end_date:=start_date+6L]
+  a0[, value1:=rnorm(.N)]
+  a0[, value2:=rnorm(.N)]
+
+  b0_temp <- data.table(start_date=as.IDate(paste0(1999:2017,"-01-01")),
+                        end_date=as.IDate(paste0(1999:2017,"-12-31")))
+  b0 <- CJ.dt(b0_temp, unique(a0[,list(id1,id2)]) )
+
+  ###two groups in x,two values####
+  a0[,neworder:=sample(1:.N)]
+  setkey(a0,"neworder")
+  a0_original <- copy(a0)
+
+  b0[,neworder:=sample(1:.N)]
+  setkey(b0,"neworder")
+  b0_original <- copy(b0)
+
+  q0_1 <- intervalaverage(x=a0,
+                          y=b0,
+                          interval_vars=c("start_date","end_date"),
+                          value_vars=c("value1","value2"),
+                          group_vars=c("id1","id2"))
+
+  expect_equal(a0,a0_original)
+  expect_equal(b0,b0_original)
+
+})
 
 
 ####test intervalaveraging function #########

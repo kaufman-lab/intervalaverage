@@ -2,16 +2,25 @@
 
 #' Intersect intervals within groups
 #'
-#' Given two tables each containing a set of intervals, find all interval intersections within groups.  Returns
-#' a data.table containing all columns from both tables.  One use of this function is to take a table
-#' containing an address history (a table containing the intervals when study participants lived at past addressess)
-#' and join it to an exposure history table (a complete set of exposure predictions for each address,
-#' where the exposures are stored as the average value over a set of intervals) returning the set of
+#' Given two tables each containing a set of intervals, find all interval intersections within groups.
+#' Returns a data.table containing all columns from both tables.
+#' One use of this function is to take a table  containing an address history
+#' (a table containing the intervals when study participants lived at past addressess)
+#' and join it to an exposure history table (a complete set of exposure predictions
+#' for each address, where the exposures are stored as the average value over a
+#' set of intervals) returning the set of
 #' exposure intervals at addresses clipped to exactly when the participant lived at that address.
 #'
-#'  All intervals are treated as inclusive.
+#'  All intervals are treated as closed (ie inclusive of the start and
+#'   end values in interval_vars).
 #'
-#'Technically speaking this is just an inner cartesian join where the last two join variables are
+#' x and y are not copied but rather passed by reference to function internals
+#' but the order of these data.tables is restored on function completion or error,
+#' setting the keys of x and y explicitly via `setkeyv(x,c(group_vars,interval_vars))` and
+#' `setkeyv(y,c(group_vars,interval_vars))` will save the function from reordering the rows back
+#' to their original state.
+#'
+#' Technically speaking this is just an inner cartesian join where the last two join variables are
 #' doing a non-equi join for partial overlaps. Then each interval intersect is calculated using max and min.
 #'
 #' If there are columns with the same names in both x and y (including interval_vars
@@ -50,6 +59,7 @@
 #' If your input tables already contain these columns,
 #' you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x and y.
 #' Or you rename columns in x and y to not contain columns named \code{c("start","end")}.
+#' @param verbose Prints additional information about the function processing.
 #' @return A data.table with columns \code{interval_vars_out} which denote the start and
 #' stop period for each interval. This return table also contains columns in x and y. See details
 #' for how naming conflicts are dealt with.
@@ -114,11 +124,34 @@
 #'
 #' @export
 intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
-                           interval_vars_out=c("start","end")
+                           interval_vars_out=c("start","end"),
+                           verbose=FALSE
                            ){
+
+
 
   x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
   y_interval_vars <- interval_vars
+
+  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
+  is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
+
+  if(is_not_preferred_keyx){
+    statex <- savestate(x,names(y))
+    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+  }else{
+    statex <-NULL
+  }
+
+  if(is_not_preferred_keyy){
+    statey <- savestate(y,names(x))
+    if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+  }else{
+    statey <-NULL
+  }
+
+  tryCatch(expr = {
+
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=x_interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or IDate")
@@ -146,7 +179,10 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   data.table::setkeyv(y,c(y_group_vars,y_interval_vars ))
   data.table::setkeyv(x,c(x_group_vars,x_interval_vars ))
 
-  z <- data.table::foverlaps(x,y,nomatch=NULL)
+  #exclude the rowindex_colname generated
+  z <- data.table::foverlaps(x[,setdiff(names(x),statex$rowindex_colname),with=FALSE],
+                             y[,setdiff(names(y),statey$rowindex_colname),with=FALSE],
+                             nomatch=NULL)
 
   #column name conflicts in x and y in foverlaps are resolved by prepending "i." to columns from x
   if(is.null(names(interval_vars))){
@@ -156,5 +192,25 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   #take the later of the two start dates and the earlier of the two end dates
   data.table::set(z, j=interval_vars_out[1],value=pmax(z[[x_interval_vars[1]]],z[[y_interval_vars[1]]] ) )
   data.table::set(z, j=interval_vars_out[2],value=pmin(z[[x_interval_vars[2]]],z[[y_interval_vars[2]]] ) )
+
+  },
+  error=function(e){
+
+    if(is_not_preferred_keyx){
+      setstate(x,statex)
+    }
+    if(is_not_preferred_keyy){
+      setstate(y,statey)
+    }
+    stop(e)
+  })
+
+
+  if(is_not_preferred_keyx){
+    setstate(x,statex)
+  }
+  if(is_not_preferred_keyy){
+    setstate(y,statey)
+  }
   z[]
 }

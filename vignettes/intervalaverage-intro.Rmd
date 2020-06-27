@@ -38,7 +38,7 @@ exposure_dataset <- data.table(location_id=1, start=seq(as.IDate("2000-01-01"),b
                 end=seq(as.IDate("2000-01-07"),by=7,length=4),pm25=rnorm(4,mean=15), no2=rnorm(4,mean=25))
 exposure_dataset
 ```
-Note that the above intervals are stored as a column for the start of the interval and a column for the end of the interval.  For the purpose of this package, intervals are ALWAYS treated as inclusive and the variables storing interval starts and ends must be discrete (e.g., class integer or IDate).
+Note that the above intervals are stored as a column for the start of the interval and a column for the end of the interval.  For the purpose of this package, intervals are ALWAYS treated as closed (i.e. inclusive of start and end values) and the variables storing interval starts and ends must be discrete (e.g., class integer or IDate).
 
 
 If we wanted to calculate the average of the first two weeks of pm25 data, this would simply be the
@@ -77,8 +77,7 @@ argument. And the variables in `exposure_dataset` that you want averages calcula
 via `value_vars`.
 
 ```{r}
-averaged_exposures <- intervalaverage(exposure_dataset,averaging_periods,
-                                      interval_vars=c("start","end"),value_vars=c("pm25","no2"))
+averaged_exposures <- intervalaverage(exposure_dataset,averaging_periods,                                      interval_vars=c("start","end"),value_vars=c("pm25","no2"))
 averaged_exposures[, list(start,end,pm25,no2)]
 ```
 The return value of the `intervalaverage` function is a `data.table`. Above I'm just displaying the first four columns of that return object.  Note that the value of the pm25 in the first row is what we calculated manually above, and the `start` and `end` columns in that row are indicating that that pm25
@@ -514,13 +513,3 @@ setkey(z,ppt_id,start2,end2)
 setkey(z_addr,ppt_id,start2,end2)
 all.equal(z,z_addr)
 ```
-
-
-
-
-##is intersects really a cartesian join? does it really not matter if you use location or address?
-##check example in sisters data
-##implement unit tests for intervalintersect
-##implement unit test for intervalaverage
-
-##read through comments for intervalaverage

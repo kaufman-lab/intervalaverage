@@ -93,7 +93,7 @@ values measured over short intervals and/or to downsample (without smoothing) va
 even shorter intervals or shift (via averaging) the data to a different schedule.
 }
 \details{
-All intervals are treated as inclusive.
+All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
 
 this function uses the data.table package. The input tables and return are
 objects of class data.table.
@@ -104,11 +104,10 @@ as the inputs and similarly coerce the result from a data.table back to a
 data.frame using \code{as.data.frame()}
 
 x and y are not copied but rather passed by reference to function internals
-to save memory in the case of very large datasets.
-the data.table keys of \code{x} and \code{y} (and therefore row order) will be altered.
-This is a compromise
-to avoid unnecessary copying and/or unnecessary rekeying when dealing with
-large x and y tables. \cr
+but the order of these data.tables is restored on function completion or error,
+setting the keys of x and y explicitly via \code{setkeyv(x,c(group_vars,interval_vars))} and
+\code{setkeyv(y,c(group_vars,interval_vars))} will save the function from reordering the rows back
+to their original state.
 
 When required_percentage is less than 100, xminstart and xmaxend may be useful to
 determine whether an average meets specified coverage requirements in terms of span

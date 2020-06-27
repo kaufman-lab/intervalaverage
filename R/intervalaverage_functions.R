@@ -13,19 +13,37 @@ create_unused_name <- function(x,reserved_cols){
 
 
 
-#' a function to grid expand an arbitrary number of data.tables
+#' grid expand an arbitrary number of data.tables
 #'
-#' similar to CJ and expand.grid except for rows data.tables.
+#' similar to data.table::CJ and base::expand.grid except for rows of data.tables.
 #'
-#' coerce data.frames to data.tables first using \code{as.data.table()}  or \code{setDT()}
+#' CJ.dt pays no attention to the contents of each table. See examples.
 #'
 #' @param ... data.tables
 #' @param groups a character vector corresponding to
 #' column names of grouping vars in all of the data.tables
+#' @examples
+#' #' CJ.dt(data.table(c(1,2,2),c(1,1,1)),data.table(c("a","b"),c("c","d")))
+#' #If you want to expand x to unique values of a non-unique columns in y
+#' x <- data.table(c(1,2,3),c("a","b","b"))
+#' y <- data.table(id=c(1,2,2,1,3),value=c(2,4,1,7,3))
+#' z <- CJ.dt(x, y[,list(id=unique(id))])
+#' #if you want to merge this back to y
+#' y[z,on="id",allow.cartesian=TRUE] #or z[y,on="id",allow.cartesian=TRUE]
 #' @import data.table
 #' @export
 CJ.dt <- function(...,groups=NULL) {
   l = list(...)
+  stopifnot( all(sapply(l,is.data.table)) )
+  l <- lapply(l,copy) #take a copy of each table
+    #copying is probably not going to cause memory or timing issues here
+    #because if you don't have the space to copy the individual tables there's
+      #no way you'll be able to grid expand them together
+     #with that said, the rest of this function is written to try to return each table to its
+     #original state so could be modified to remove the copying
+     #if this is slowing a particular task down
+     #edit out the copy at your own risk and know that if the function returns an error
+       #all your tables will likely be modified because they have an extra column
   EVAL <- function(...)eval(parse(text=paste0(...)))
   if(any(sapply(l,nrow)==0)){stop("one or more data.tables have no rows")}
   stopifnot(all(sapply(l,data.table::is.data.table)))
@@ -66,6 +84,7 @@ CJ.dt <- function(...,groups=NULL) {
 #' @param x A data.table
 #' @param interval_vars A length-2 character vector corresponding to column names of x which designate the starting and ending intervals
 #' @param group_vars NULL or a character vector corresponding to column names of x. overlap checks will occur within groups defined by the columns specified here.
+#' @param verbose prints additional information, default is FALSE
 #' @return length-1 logical vector
 #'
 #' @examples
@@ -76,24 +95,41 @@ CJ.dt <- function(...,groups=NULL) {
 #' z <- data.table(start=c(1,3,1,2),end=c(2,4,3,4),id=c(1,1,2,2))
 #' is.overlapping(z,c("start","end"),"id")
 #' @export
-is.overlapping <- function(x,interval_vars,group_vars=NULL){
+is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
   if("._.irow"%in%names(x)){
     stop("._.irow cannot be in names of x. rename this column. If you didn't expect this
          column to be here, it may because this function previously crashed. You can
          safely delete this column. Please submit a bug report to the github repo.")
   }
- ._.irow <- i.._.irow <-  NULL # due to NSE notes in R CMD check
- k <- data.table::key(x)
- data.table::setkeyv(x,c(group_vars,interval_vars))
- stopifnot(!"._.irow"%in%names(x))
- stopifnot(!"i_._.irow"%in%names(x))
- x[,._.irow:=1:nrow(x)]
- z <- data.table::foverlaps(x,x)
- out <- z[._.irow!=i.._.irow]
- data.table::setkeyv(x,k)
- x[, ._.irow:=NULL]
- x[]
- nrow(out)!=0
+  ._.irow <- i.._.irow <-  NULL # due to NSE notes in R CMD check
+  stopifnot(is.data.table(x))
+
+  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
+  if(is_not_preferred_keyx){
+    statex <- savestate(x)
+    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling is.overlap is recommended to save unnecessary row reordering")}
+  }
+  tryCatch(expr = {
+    data.table::setkeyv(x,c(group_vars,interval_vars))
+    stopifnot(!"._.irow"%in%names(x))
+    stopifnot(!"i_._.irow"%in%names(x))
+    x[,._.irow:=1:nrow(x)]
+    z <- data.table::foverlaps(x,x)
+    out <- z[._.irow!=i.._.irow]
+
+  },
+  error=function(e){
+    if(is_not_preferred_keyx){
+      setstate(x,statex)
+    }
+    stop(e)
+  })
+
+  if(is_not_preferred_keyx){
+    setstate(x,statex)
+  }
+
+  nrow(out)!=0
 }
 
 
@@ -106,7 +142,7 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #' values measured over short intervals and/or to downsample (without smoothing) values to
 #' even shorter intervals or shift (via averaging) the data to a different schedule.
 #'
-#' All intervals are treated as inclusive.
+#' All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
 #'
 #' this function uses the data.table package. The input tables and return are
 #' objects of class data.table.
@@ -117,11 +153,10 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL){
 #' data.frame using \code{as.data.frame()}
 #'
 #' x and y are not copied but rather passed by reference to function internals
-#' to save memory in the case of very large datasets.
-#' the data.table keys of \code{x} and \code{y} (and therefore row order) will be altered.
-#' This is a compromise
-#' to avoid unnecessary copying and/or unnecessary rekeying when dealing with
-#' large x and y tables. \cr
+#' but the order of these data.tables is restored on function completion or error,
+#' setting the keys of x and y explicitly via `setkeyv(x,c(group_vars,interval_vars))` and
+#' `setkeyv(y,c(group_vars,interval_vars))` will save the function from reordering the rows back
+#' to their original state.
 #'
 #' When required_percentage is less than 100, xminstart and xmaxend may be useful to
 #' determine whether an average meets specified coverage requirements in terms of span
@@ -202,7 +237,23 @@ intervalaverage <- function(x,
   stopifnot(data.table::is.data.table(x))
   stopifnot(data.table::is.data.table(y))
 
+
   EVAL <- function(...)eval(parse(text=paste0(...)))
+
+  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
+  is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
+
+  if(is_not_preferred_keyx){
+    statex <- savestate(x)
+    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
+  }
+
+  if(is_not_preferred_keyy){
+    statey <- savestate(y)
+    if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
+  }
+
+  tryCatch(expr = {
   data.table::setkeyv(x,c(group_vars,interval_vars))
   data.table::setkeyv(y,c(group_vars,interval_vars))
 
@@ -468,13 +519,35 @@ intervalaverage <- function(x,
   data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars,
                    "xminstart","xmaxend"))
 
+
+
+  },
+  error=function(e){
+
+    if(is_not_preferred_keyx){
+      setstate(x,statex)
+    }
+    if(is_not_preferred_keyy){
+      setstate(y,statey)
+    }
+    stop(e)
+  })
+
+
+  if(is_not_preferred_keyx){
+    setstate(x,statex)
+  }
+  if(is_not_preferred_keyy){
+    setstate(y,statey)
+  }
+
   if(verbose){
     print("everything else:")
     print(proc.time()-xx)
   }
-
   q[]
-  }
+
+}
 
 
 
@@ -673,12 +746,20 @@ interval_weighted_avg_slow_f <- function(x,
 #' isolate sections of overlapping intervals
 #'
 #' Given a set of intervals in a table, isolate sections of intervals that are overlapping
-#' with other in intervals (optionally, within groups). Return a table containing the interval span of of the original
-#' table, with sections of exact overlap separated from sections of non-overlap.
+#' with other in intervals (optionally, within groups). Returns a data.table that contains
+#' intervals which are mutually non-overlapping or exactly overlapping with other intervals
+#' (ie there are no partially overlapping intervals) (again, possibly within groups).  The original interval data is conserved
+#' such that for each interval/row in x, the return table has one or more
+#' non-overlapping intervals that together form the union of that original interval.
 #'
-#' All intervals are treated as inclusive.
-#' x is not copied but rather passed by reference to function internals so save memory in the case of very large datasets.
-#' The key of x  may be altered if the function returns an error.
+#'
+#' All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
+#'
+#' x is not copied but rather passed by reference to function internals
+#' but the order of this data.tables is restored on function completion or error,
+#' setting the key of x explicitly via `setkeyv(x,c(group_vars,interval_vars))`
+#' will save the function from reordering the rows back
+#' to their original state.
 #'
 #' @param x A data.table
 #' @param interval_vars A length-2 character vector denoting column names in x.
@@ -714,6 +795,8 @@ interval_weighted_avg_slow_f <- function(x,
 isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c("start","end")){
   EVAL <- function(...)eval(parse(text=paste0(...)))
 
+  stopifnot(is.data.table(x))
+
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or IDate")
   }
@@ -721,7 +804,6 @@ isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c(
     stop("interval_vars must correspond to columns in x of the same class")
   }
 
-  xkey <- data.table::key(x)
 
   if(any(interval_vars_out %in% names(x))){ stop("Column names in x detected to have the same values as interval_vars_out.
                                             This causes naming conflicts internal to the function. Choose different
@@ -769,9 +851,9 @@ isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c(
 
 
   data.table::setkeyv(temp,c(group_vars,interval_vars))
-  if(!is.null(data.table::key(x))) data.table::setkeyv(x,c(group_vars,interval_vars))
 
-  out <- data.table::foverlaps(x,temp)
+
+  out <- data.table::foverlaps(x,temp,by.x=c(group_vars,interval_vars))
   data.table::setorderv(out, c(group_vars,
                    paste0("i.",interval_vars),
                    interval_vars))
@@ -780,7 +862,7 @@ isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c(
   data.table::setnames(out, interval_vars, interval_vars_out)
   data.table::setnames(out, i.interval_vars, interval_vars)
 
-  data.table::setkeyv(x, xkey)
+
   out
 }
 
