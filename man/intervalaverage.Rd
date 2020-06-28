@@ -16,37 +16,49 @@ intervalaverage(
 )
 }
 \arguments{
-\item{x}{a data.table containing values measured over intervals. see interval_vars parameter
-for how to specify interval columns and value_vars for how to specify value columns.
-intervals in x must must be completely non-overlapping within
-groups defined by group_vars. if group_vars is specified (non-NULL), BOTH x and y must
-contain columns specified in group_vars.}
+\item{x}{a data.table containing values measured over intervals. see
+\code{interval_vars} parameter
+for how to specify interval columns and \code{value_vars} for how to
+specify value columns.
+intervals in \code{x} must must be completely non-overlapping within
+groups defined by group_vars. if \code{group_vars} is specified (non-\code{NULL}), \code{x} must
+also contain columns specified in \code{group_vars}.}
 
-\item{y}{a data.table object containing intervals over which averages of x values should be computed.
-averaging intervals in y unlike measurement intervals in x, may be overlapping with groups.
-if group_vars is specified (non-NULL),  y must contains those group_vars column names
+\item{y}{a data.table object containing intervals over which averages of \code{x} values should be computed.
+averaging intervals in \code{y}, unlike measurement intervals in \code{x}, may be overlapping within groups.
+if \code{group_vars} is specified (non-\code{NULL}),  \code{y} must contains those \code{group_vars} column names
 (and this would allow different averagings period for each group)}
 
-\item{interval_vars}{a length-2 character vector of column names in both x and y.
+\item{interval_vars}{a length-2 character vector of column names in both \code{x} and \code{y}.
+These column names specify columns in x and y that define
+closed (inclusive) starting and ending intervals. The column name
+specifying the lower-bound column must be specified first.
 these columns in x and y must all be of the same class and either be integer or IDate.}
 
-\item{value_vars}{a character vector of column names in x. This specifies
+\item{value_vars}{a character vector of column names in \code{x}. This specifies
 the columns to be averaged.}
 
-\item{group_vars}{NULL, or a character vector of column names in both x and y. Together the interaction of
-these variables define groups in which averages of x values will be taken.
+\item{group_vars}{A character vector of column names in both x and y.
+The interaction of
+these variables define groups in which averages of \code{x} values will be taken.
 specifying subjects/monitors/locations within which to take averages.
-can by NULL, in which case averages are taken over the entire x
-dataset for each y period.}
+By default this is \code{NULL}, in which case averages are taken over the entire \code{x}
+dataset for each \code{y} period.}
 
-\item{required_percentage}{What percentage of the duration of the y interval should x be observed
-and nonmissing for in order for the return table to contain a nonmissing value for that average?
-The default is 100 meaning that for an interval in y, any amount of missing or non-present
-measurement days in x will result in a value of NA for that average.}
+\item{required_percentage}{This percentage of the duration of each (possibly group-specific)
+\code{y} interval must be observed
+and nonmissing for a specific \code{value_var} in \code{x} in order for the return table to
+contain a nonmissing average of the \code{value_var} for that \code{y} interval.  If the percentage
+of the nonmissing \code{value_var} observations is less than \code{required_percentage} an NA will be be returned
+for that average.
+The default is 100, meaning that if \emph{any} portion of a \code{y} interval is either not recorded or
+missing in \code{x}, then the corresponding return row will contain a an NA for the average of that
+\code{value_var}.}
 
 \item{skip_overlap_check}{by default, FALSE. setting this to TRUE will skip
 internal checks to make sure x intervals are non-overlapping within
-groups defined by group_vars. #'  intervals in x must be non-overlapping,
+groups defined by group_vars.
+intervals in x must be non-overlapping,
 but you may want to skip this check if you've  already checked this because
 it is computationally intensive for large datasets.}
 
@@ -58,8 +70,9 @@ Rows of the return data.table correspond to intervals from y. i.e, the number
 of rows of the return will be the number of rows of y.
 Columns of the returned data.table are as follows: \cr
 \itemize{
-\item grouping variables as specified in group_vars \cr
-\item interval columns corresponding to intervals in y. columns are named the same as they were in x and y.
+\item grouping variables as specified in \code{group_vars} \cr
+\item interval columns corresponding to intervals in y. These columns are named the
+same they were in x and y and as specified in \code{interval_vars}
 \item value variable columns from x, averaged to periods in y.
 named the same as they were in x \cr
 \item \code{yduration}: the length of the interval (ie as a count) specified in y \cr

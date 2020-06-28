@@ -20,6 +20,9 @@ intervalintersect(
 
 \item{interval_vars}{Either a length-2 character vector denoting column names in both x and y or a named
 length-2 character vector where the names are column names in x and the values are column names in y.
+These column names specify columns in x and y that define
+closed (inclusive) starting and ending intervals. The column name
+specifying the lower-bound column must be specified first.
 these columns in x and y must all be of the same class and either be integer or IDate.}
 
 \item{group_vars}{NULL, or either a character vector denoting the column name(s) in x and y,
@@ -51,8 +54,8 @@ set of intervals) returning the set of
 exposure intervals at addresses clipped to exactly when the participant lived at that address.
 }
 \details{
-All intervals are treated as closed (ie inclusive of the start and
-end values in interval_vars).
+All intervals are treated as closed (ie inclusive of the start and end values in the columns
+specified by interval_vars)
 
 x and y are not copied but rather passed by reference to function internals
 but the order of these data.tables is restored on function completion or error,

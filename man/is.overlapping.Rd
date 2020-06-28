@@ -10,7 +10,8 @@ is.overlapping(x, interval_vars, group_vars = NULL, verbose = FALSE)
 \item{x}{A data.table with two columns defining closed intervals (see also interval_vars).}
 
 \item{interval_vars}{A length-2 character vector corresponding to column names of x which designate
-the starting and ending intervals}
+the closed (inclusive) starting and ending intervals. The column name
+specifying the lower-bound column must be specified first.}
 
 \item{group_vars}{NULL or a character vector corresponding to column names of x.
 overlap checks will occur within groups defined by the columns specified here.}

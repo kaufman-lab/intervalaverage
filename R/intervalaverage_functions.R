@@ -85,7 +85,8 @@ CJ.dt <- function(...,groups=NULL) {
 #'
 #' @param x A data.table with two columns defining closed intervals (see also interval_vars).
 #' @param interval_vars A length-2 character vector corresponding to column names of x which designate
-#' the starting and ending intervals
+#' the closed (inclusive) starting and ending intervals. The column name
+#' specifying the lower-bound column must be specified first.
 #' @param group_vars NULL or a character vector corresponding to column names of x.
 #' overlap checks will occur within groups defined by the columns specified here.
 #' @param verbose prints additional information, default is FALSE
@@ -151,31 +152,43 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #'
 #'
 #'
-#' @param x a data.table containing values measured over intervals. see interval_vars parameter
-#' for how to specify interval columns and value_vars for how to specify value columns.
-#' intervals in x must must be completely non-overlapping within
-#' groups defined by group_vars. if group_vars is specified (non-NULL), BOTH x and y must
-#' contain columns specified in group_vars.
-#' @param y a data.table object containing intervals over which averages of x values should be computed.
-#' averaging intervals in y unlike measurement intervals in x, may be overlapping with groups.
-#' if group_vars is specified (non-NULL),  y must contains those group_vars column names
+#' @param x a data.table containing values measured over intervals. see
+#' `interval_vars` parameter
+#' for how to specify interval columns and `value_vars` for how to
+#'  specify value columns.
+#' intervals in `x` must must be completely non-overlapping within
+#' groups defined by group_vars. if `group_vars` is specified (non-`NULL`), `x` must
+#' also contain columns specified in `group_vars`.
+#' @param y a data.table object containing intervals over which averages of `x` values should be computed.
+#' averaging intervals in `y`, unlike measurement intervals in `x`, may be overlapping within groups.
+#' if `group_vars` is specified (non-`NULL`),  `y` must contains those `group_vars` column names
 #'  (and this would allow different averagings period for each group)
-#' @param interval_vars a length-2 character vector of column names in both x and y.
+#' @param interval_vars a length-2 character vector of column names in both `x` and `y`.
+#' These column names specify columns in x and y that define
+#' closed (inclusive) starting and ending intervals. The column name
+#' specifying the lower-bound column must be specified first.
 #' these columns in x and y must all be of the same class and either be integer or IDate.
-#' @param value_vars a character vector of column names in x. This specifies
+#' @param value_vars a character vector of column names in `x`. This specifies
 #' the columns to be averaged.
-#' @param group_vars NULL, or a character vector of column names in both x and y. Together the interaction of
-#' these variables define groups in which averages of x values will be taken.
+#' @param group_vars A character vector of column names in both x and y.
+#' The interaction of
+#' these variables define groups in which averages of `x` values will be taken.
 #' specifying subjects/monitors/locations within which to take averages.
-#' can by NULL, in which case averages are taken over the entire x
-#' dataset for each y period.
-#' @param required_percentage What percentage of the duration of the y interval should x be observed
-#' and nonmissing for in order for the return table to contain a nonmissing value for that average?
-#'  The default is 100 meaning that for an interval in y, any amount of missing or non-present
-#'  measurement days in x will result in a value of NA for that average.
+#' By default this is `NULL`, in which case averages are taken over the entire `x`
+#' dataset for each `y` period.
+#' @param required_percentage This percentage of the duration of each (possibly group-specific)
+#' `y` interval must be observed
+#' and nonmissing for a specific `value_var` in `x` in order for the return table to
+#' contain a nonmissing average of the `value_var` for that `y` interval.  If the percentage
+#' of the nonmissing `value_var` observations is less than `required_percentage` an NA will be be returned
+#' for that average.
+#'  The default is 100, meaning that if \emph{any} portion of a `y` interval is either not recorded or
+#'  missing in `x`, then the corresponding return row will contain a an NA for the average of that
+#'  `value_var`.
 #' @param skip_overlap_check by default, FALSE. setting this to TRUE will skip
 #'  internal checks to make sure x intervals are non-overlapping within
-#'   groups defined by group_vars. #'  intervals in x must be non-overlapping,
+#'   groups defined by group_vars.
+#'    intervals in x must be non-overlapping,
 #'    but you may want to skip this check if you've  already checked this because
 #'    it is computationally intensive for large datasets.
 #' @param verbose include printed timing information? by default, FALSE
@@ -183,8 +196,9 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #' Rows of the return data.table correspond to intervals from y. i.e, the number
 #' of rows of the return will be the number of rows of y.
 #' Columns of the returned data.table are as follows: \cr
-#' - grouping variables as specified in group_vars \cr
-#' - interval columns corresponding to intervals in y. columns are named the same as they were in x and y.
+#' - grouping variables as specified in `group_vars` \cr
+#' - interval columns corresponding to intervals in y. These columns are named the
+#'   same they were in x and y and as specified in `interval_vars`
 #' - value variable columns from x, averaged to periods in y.
 #'    named the same as they were in x \cr
 #' - \code{yduration}: the length of the interval (ie as a count) specified in y \cr
@@ -731,25 +745,29 @@ interval_weighted_avg_slow_f <- function(x,
 #' such that for each interval/row in x, the return table has one or more
 #' non-overlapping intervals that together form the union of that original interval.
 #'
-#' All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
+#' All intervals are treated as closed (ie inclusive of the start and end values in the columns
+#' specified by interval_vars)
 #'
 #' x is not copied but rather passed by reference to function internals
 #' but the order of this data.tables is restored on function completion or error.
 #'
-#' @param x A data.table
+#' @param x A data.table containing a set of intervals.
 #' @param interval_vars A length-2 character vector denoting column names in x.
-#' these columns must be of the same class and be integer or IDate.
+#' these columns must be of the same class and be integer or IDate. The column name
+#' specifying the lower-bound column must be specified first.
 #' @param group_vars NULL, or a character vector denoting column names in x.
 #'  These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 #'  within categories defined by the combination of the group variables.
 #' @param interval_vars_out The desired column names of the interval columns in the return data.table.
-#' By default the return table will contain columns \code{c("start","end")}.
-#' If x already contains columns with those names,
-#' you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x.
-#' Or you rename columns in x to not contain columns named \code{c("start","end")}.
+#' By default these columns will be generated to be named \code{c("start","end")}.
+#' If x contains columns with the same name as the desired output column
+#' names specified in `interval_vars_out`, the function will return in error to avoid naming
+#' confusion in the return table.
 #' @return A data.table with columns \code{interval_vars_out} which denote the start and
-#' stop period for each new interval. This return table also contains columns in x.
-#' @seealso \code{\link{is.overlapping}} To test if a table contains overlapping intervals within values of \code{group_vars}
+#' stop period for each new interval. This return table also contains columns in x
+#' (including the original interval columns).
+#' @seealso \code{\link{is.overlapping}} To test if a table contains overlapping intervals within
+#'  values of \code{group_vars}
 #'
 #' @examples
 #'
@@ -762,9 +780,6 @@ interval_weighted_avg_slow_f <- function(x,
 #'x2z
 #'#x2b represents x2 when where exposure values in overlapping intervals have been averaged
 #'x2b <- x2z[, list(exposure_value=mean(exposure_value)),by=c("addr_id","start","end")]
-#'
-#'x2
-#'x2b
 #'
 #' @export
 isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c("start","end")){
@@ -781,7 +796,7 @@ isolateoverlaps <- function(x,interval_vars,group_vars=NULL,interval_vars_out=c(
 
 
   if(any(interval_vars_out %in% names(x))){ stop("Column names in x detected to have the same values as interval_vars_out.
-                                            This causes naming conflicts internal to the function. Choose different
+                                            This would causes naming conflicts in the return. Choose different
                                             output names by specifying the argument interval_vars_out")}
   variable_var <- create_unused_name("variable",names(x))
   i.interval_vars <- paste0("i.", interval_vars)
