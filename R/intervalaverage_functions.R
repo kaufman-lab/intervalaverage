@@ -108,26 +108,15 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
   if(is_not_preferred_keyx){
     statex <- savestate(x)
     if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling is.overlap is recommended to save unnecessary row reordering")}
+    on.exit(setstate(x,statex))
   }
-  tryCatch(expr = {
+
     data.table::setkeyv(x,c(group_vars,interval_vars))
     stopifnot(!"._.irow"%in%names(x))
     stopifnot(!"i_._.irow"%in%names(x))
     x[,._.irow:=1:nrow(x)]
     z <- data.table::foverlaps(x,x)
     out <- z[._.irow!=i.._.irow]
-
-  },
-  error=function(e){
-    if(is_not_preferred_keyx){
-      setstate(x,statex)
-    }
-    stop(e)
-  })
-
-  if(is_not_preferred_keyx){
-    setstate(x,statex)
-  }
 
   nrow(out)!=0
 }
@@ -246,14 +235,16 @@ intervalaverage <- function(x,
   if(is_not_preferred_keyx){
     statex <- savestate(x)
     if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
+    on.exit(setstate(x,statex))
   }
 
   if(is_not_preferred_keyy){
     statey <- savestate(y)
     if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
+    on.exit(setstate(y,statey),add=TRUE)
   }
 
-  tryCatch(expr = {
+
   data.table::setkeyv(x,c(group_vars,interval_vars))
   data.table::setkeyv(y,c(group_vars,interval_vars))
 
@@ -520,26 +511,6 @@ intervalaverage <- function(x,
                    "xminstart","xmaxend"))
 
 
-
-  },
-  error=function(e){
-
-    if(is_not_preferred_keyx){
-      setstate(x,statex)
-    }
-    if(is_not_preferred_keyy){
-      setstate(y,statey)
-    }
-    stop(e)
-  })
-
-
-  if(is_not_preferred_keyx){
-    setstate(x,statex)
-  }
-  if(is_not_preferred_keyy){
-    setstate(y,statey)
-  }
 
   if(verbose){
     print("everything else:")
