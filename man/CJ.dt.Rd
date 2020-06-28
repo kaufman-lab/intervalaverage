@@ -16,7 +16,8 @@ column names of grouping vars in all of the data.tables}
 similar to data.table::CJ and base::expand.grid except for rows of data.tables.
 }
 \details{
-CJ.dt pays no attention to the contents of each table. See examples.
+CJ.dt computes successive cartesian join over rows of each table
+paying no attention to whatever the tables are keyed on.
 }
 \examples{
 #' CJ.dt(data.table(c(1,2,2),c(1,1,1)),data.table(c("a","b"),c("c","d")))

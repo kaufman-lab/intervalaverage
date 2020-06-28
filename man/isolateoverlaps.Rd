@@ -35,7 +35,8 @@ stop period for each new interval. This return table also contains columns in x.
 Given a set of intervals in a table, isolate sections of intervals that are overlapping
 with other in intervals (optionally, within groups). Returns a data.table that contains
 intervals which are mutually non-overlapping or exactly overlapping with other intervals
-(ie there are no partially overlapping intervals) (again, possibly within groups).  The original interval data is conserved
+(ie there are no partially overlapping intervals) (optionally within groups).
+Note that this doesn't just return the intersects; the original interval data is conserved
 such that for each interval/row in x, the return table has one or more
 non-overlapping intervals that together form the union of that original interval.
 }
@@ -43,10 +44,7 @@ non-overlapping intervals that together form the union of that original interval
 All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
 
 x is not copied but rather passed by reference to function internals
-but the order of this data.tables is restored on function completion or error,
-setting the key of x explicitly via \code{setkeyv(x,c(group_vars,interval_vars))}
-will save the function from reordering the rows back
-to their original state.
+but the order of this data.tables is restored on function completion or error.
 }
 \examples{
 

@@ -16,9 +16,6 @@
 #'
 #' x and y are not copied but rather passed by reference to function internals
 #' but the order of these data.tables is restored on function completion or error,
-#' setting the keys of x and y explicitly via `setkeyv(x,c(group_vars,interval_vars))` and
-#' `setkeyv(y,c(group_vars,interval_vars))` will save the function from reordering the rows back
-#' to their original state.
 #'
 #' Technically speaking this is just an inner cartesian join where the last two join variables are
 #' doing a non-equi join for partial overlaps. Then each interval intersect is calculated using max and min.
@@ -44,16 +41,15 @@
 #'
 #'
 #'
-#' @param x A data.table of exposures with two columns designating intervals with a column for address id and a column for ppt it.
-#' @param y A data.table containing an address history (with two columns designating intervals)
-#'  where these intervals are non-overlapping within ppt_id
+#' @param x A data.table with two columns defining closed intervals (see also interval_vars parameter)
+#' @param y A data.table with two columns defining closed intervals (see also interval_vars parameter)
 #' @param interval_vars Either a length-2 character vector denoting column names in both x and y or a named
 #'  length-2 character vector where the names are column names in x and the values are column names in y.
 #' these columns in x and y must all be of the same class and either be integer or IDate.
 #' @param group_vars NULL, or either a character vector denoting the column name(s) in x and y,
 #'  or a named character vector where the name is the column name in x and the value is the column name in y.
 #'  This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
-#'  such that intervals in x will only be joined to overlapping in intervals in y when the group_vars values are the same.
+#'  such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
 #' @param interval_vars_out The column names of the interval columns in the return data.table.
 #' By default the return table will contain columns \code{c("start","end")}.
 #' If your input tables already contain these columns,
@@ -123,10 +119,7 @@
 #'"addr_id")
 #'
 #' @export
-intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
-                           interval_vars_out=c("start","end"),
-                           verbose=FALSE
-                           ){
+intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
 
 
