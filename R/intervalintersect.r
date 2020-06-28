@@ -137,20 +137,20 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
 
   if(is_not_preferred_keyx){
-    statex <- savestate(x,names(y))
+    statex <- savestate(x)
     if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+    on.exit(setstate(x,statex))
   }else{
     statex <-NULL
   }
 
   if(is_not_preferred_keyy){
-    statey <- savestate(y,names(x))
+    statey <- savestate(y)
     if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+    on.exit(setstate(y,statey),add=TRUE)
   }else{
     statey <-NULL
   }
-
-  tryCatch(expr = {
 
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=x_interval_vars]){
@@ -193,24 +193,7 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   data.table::set(z, j=interval_vars_out[1],value=pmax(z[[x_interval_vars[1]]],z[[y_interval_vars[1]]] ) )
   data.table::set(z, j=interval_vars_out[2],value=pmin(z[[x_interval_vars[2]]],z[[y_interval_vars[2]]] ) )
 
-  },
-  error=function(e){
-
-    if(is_not_preferred_keyx){
-      setstate(x,statex)
-    }
-    if(is_not_preferred_keyy){
-      setstate(y,statey)
-    }
-    stop(e)
-  })
-
-
-  if(is_not_preferred_keyx){
-    setstate(x,statex)
-  }
-  if(is_not_preferred_keyy){
-    setstate(y,statey)
-  }
+  other_vars <- setdiff(names(z),c(interval_vars_out,group_vars))
+  setcolorder(z, c(group_vars, interval_vars_out, other_vars))
   z[]
 }

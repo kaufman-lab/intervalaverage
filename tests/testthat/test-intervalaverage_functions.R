@@ -196,7 +196,55 @@ test_that("intervalaveraging restores state", {
   expect_equal(a0,a0_original)
   expect_equal(b0,b0_original)
 
+
 })
+
+
+
+test_that("intervalaveraging restores state even when it throws an error", {
+  #averaging intervals longer than observed period
+  set.seed(72)
+  a_start_date <- seq(structure(10590L, class = c("IDate", "Date")),
+                      structure(17163L, class = c("IDate", "Date")),by=7L)
+
+  a0 <- CJ(id1=1:3,id2=1:100, start_date=a_start_date)
+  a0[, end_date:=start_date+6L]
+  a0[, value1:=rnorm(.N)]
+  a0[, value2:=rnorm(.N)]
+  #make it overlapping so it throws an error
+  a0[id1==1&id2==1,start_date:=min(a0$start_date)]
+  a0[id1==1&id2==1,end_date:=max(a0$end_date)]
+
+  expect_true(is.overlapping(a0,interval_vars=c("start_date","end_date"),
+                              group_vars=c("id1","id2")
+                              ),"overlap")
+
+  b0_temp <- data.table(start_date=as.IDate(paste0(1999:2017,"-01-01")),
+                        end_date=as.IDate(paste0(1999:2017,"-12-31")))
+  b0 <- CJ.dt(b0_temp, unique(a0[,list(id1,id2)]) )
+
+  ###two groups in x,two values####
+  a0[,neworder:=sample(1:.N)]
+  setkey(a0,"neworder")
+  a0_original <- copy(a0)
+
+  b0[,neworder:=sample(1:.N)]
+  setkey(b0,"neworder")
+  b0_original <- copy(b0)
+
+  expect_error(q0_1 <- intervalaverage(x=a0,
+                          y=b0,
+                          interval_vars=c("start_date","end_date"),
+                          value_vars=c("value1","value2"),
+                          group_vars=c("id1","id2")),"replicate/duplicate intervals")
+
+  expect_equal(a0,a0_original)
+  expect_equal(b0,b0_original)
+
+
+})
+
+
 
 
 ####test intervalaveraging function #########

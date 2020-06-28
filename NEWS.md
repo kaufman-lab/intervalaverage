@@ -1,3 +1,10 @@
+# intervalaverage 0.1 (Release)
+
+## BUG FIXES
+1. More minor improvements in documentation (edits to intro vignette)
+2. Improvements in code to avoid side-effects (ie changes in row order) that were originally implemented in 0.0.0.9001, based on suggestions from https://github.com/Rdatatable/data.table/issues/4575#issuecomment-650656185
+3. intervalintersect now returns columns in a more sensible order.
+
 # intervalaverage 0.0.0.9002 (Development)
 
 ## BUG FIXES

@@ -71,6 +71,13 @@ test_that("example address history is non-overlapping",{
                               group_vars="location_id")
   )
 
+  #scramble the order and set different keys to check if state is returned after
+  setkey(exposure_dataset3,no2)
+  addr_history <- addr_history[sample(1:.N)]
+  setkey(addr_history,addr_end)
+
+  addr_history_original <- copy(addr_history)
+  exposure_dataset3_original <- copy(exposure_dataset3)
 
 z <- intervalintersect(x=exposure_dataset3,
                        y=addr_history,
@@ -82,7 +89,8 @@ z <- intervalintersect(x=exposure_dataset3,
                        interval_vars_out=c("start2","end2")
 )
 
-
+expect_equal(exposure_dataset3_original, exposure_dataset3)
+expect_equal(addr_history_original,addr_history)
 
 #if the address history and the exposure datasets are both non-overlapping
 #then the resulting intersect must also be non-overlapping
