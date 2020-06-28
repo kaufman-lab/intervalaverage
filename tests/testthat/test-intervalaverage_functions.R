@@ -646,7 +646,10 @@ test_that("intervalaveraging", {
 
 
 
+})
 
+test_that("intervalaverage large data cran skip",{
+  skip_on_cran()
 
   ##more realism
   set.seed(12323)
@@ -680,16 +683,16 @@ test_that("intervalaveraging", {
 
 
   expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
-                          value_vars=c("value1","value2"),
-                          group_vars=c("id1","id2"),
-                          skip_overlap_check=FALSE),
+                                         value_vars=c("value1","value2"),
+                                         group_vars=c("id1","id2"),
+                                         skip_overlap_check=FALSE),
                  "removing these duplicated rows automatically")
 
   expect_warning(zzz2 <- intervalaverage:::interval_weighted_avg_slow_f(a,b,
-                                                         interval_vars=c("start","end"),
-                                                         value_vars=c("value1","value2"),
-                                                         group_vars=c("id1","id2"),
-                                                         skip_overlap_check=FALSE),
+                                                                        interval_vars=c("start","end"),
+                                                                        value_vars=c("value1","value2"),
+                                                                        group_vars=c("id1","id2"),
+                                                                        skip_overlap_check=FALSE),
                  "removing these duplicated rows automatically")
 
   expect_equal(zzz1,zzz2)
