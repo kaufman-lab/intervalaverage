@@ -39,10 +39,10 @@ sample_dates <- function(n){
   stopifnot(n%%2==0)
   dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2008-01-01"),by=1L)
   dates <- sort(sample(dateseq,n))
-  #half of the time, make the last date "9999-01-01" which represents that the currently
+  #half of the time, make the last date "2030-01-01" which represents that the currently
   #lives at that location and we're carrying that assumption forward
   if(runif(1)>.5){
-    dates[length(dates)] <- as.IDate("9999-01-01")
+    dates[length(dates)] <- as.IDate("2030-01-01")
   }
   dates
 }
