@@ -272,17 +272,19 @@ intervalaverage(exposure_dataset_overlaps_averaged,
 
 ## Averaging values measured over intervals: different averaging periods for different groups
 Often we're interested in calculating averages over different periods for different locations.
-First to make this more realistic, let's generate ~20 years of data at 2000 locations:
+First to make this more realistic, let's generate ~10 years of data at 2000 locations:
 
 ```{r}
+n_locations <- 600
+n_days_exposure_measurement <- 500
 exposure_dataset3 <- rbindlist(
-  lapply(1:2000, function(id) {
+  lapply(1:n_locations, function(id) {
     data.table(
       location_id = id,
-      start = seq(as.IDate("2000-01-01"), by = 7, length = 1000),
-      end = seq(as.IDate("2000-01-07"), by = 7, length = 1000),
-      pm25 = rnorm(4, mean = 15),
-      no2 = rnorm(4, mean = 25)
+      start = seq(as.IDate("2000-01-01"), by = 7, length = n_days_exposure_measurement),
+      end = seq(as.IDate("2000-01-07"), by = 7, length = n_days_exposure_measurement),
+      pm25 = rnorm(n_days_exposure_measurement, mean = 15),
+      no2 = rnorm(n_days_exposure_measurement, mean = 25)
     )
   })
 )
@@ -293,10 +295,10 @@ exposure_dataset3
 Now let's pick a different random end date for each location's averaging period. We'll define the end
 date as 3 years after start that to define three-year intervals for every location.
 ```{r}
-averaging_periods3 <- data.table(location_id=1:2000,
+averaging_periods3 <- data.table(location_id=1:n_locations,
                                  start=sample(
-                                   seq(as.IDate("2000-01-01"),as.IDate("2019-12-31"),by=1),
-                                   2000
+                                   seq(as.IDate("2000-01-01"),as.IDate("2010-12-31"),by=1),
+                                   n_locations
                                  )
 )
 averaging_periods3[,end:=start+round(3*365.25)]
@@ -312,8 +314,8 @@ intervalaverage(exposure_dataset3,
                 group_vars="location_id")[,list(location_id,start,end,pm25,no2)]
 ```
 You shouldn't be surprised to see some missingness since the 
-earliest possible latest possible averaging period start date is Dec 31, 2019 but the exposures stop
-in early 2019. The `required_percentage` argument could be set here to something less than the default of 100
+earliest possible latest possible averaging period start date is Dec 31, 2010 but the exposures stop
+in late 2009. The `required_percentage` argument could be set here to something less than the default of 100
 to compute partial averages and get fewer missing values.
 
 Finally, a quick trick if you'd like to calculate 1-year, 2-year, and 3-year averages all at once:
@@ -430,11 +432,11 @@ those from x, those from y, and their intersections.
 
 
 ### Interval intersects: averaging with a larger address history
-starting with the unique set of locations extracted from `exposure_dataset3`, let's generate 300 participants and a random number of addresses each participant lived at
+starting with the unique set of locations extracted from `exposure_dataset3`, let's generate 150 participants and a random number of addresses each participant lived at
 ```{r}
-n_ppt <- 300
+n_ppt <- 150
 addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
-addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)] 
+addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.001)] 
 
 #repl=TRUE because it's possible for an address to be lived at multiple different time intervals:
 addr_history <- addr_history[, 
@@ -459,7 +461,7 @@ I've generated intervals which are non-overlapping representing the particpant a
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2017-01-01"),by=1)
+  dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2010-01-01"),by=1)
   dates <- sort(sample(dateseq,n))
   #half of the time, make the last date "9999-01-01" which represents that the currently
    #lives at that location and we're carrying that assumption forward

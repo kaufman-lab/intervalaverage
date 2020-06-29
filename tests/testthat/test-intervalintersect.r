@@ -6,15 +6,17 @@ test_that("intervalintersect",{
 
 
 ##leverage the structure of the example from the vignette for some tests
-exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
-  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7L,length=500),
-             end=seq(as.IDate("2000-01-07"),by=7L,length=500),pm25=rnorm(4,mean=15),
-             no2=rnorm(4,mean=25) )
+exposure_dataset3 <- rbindlist(lapply(1:40, function(z){
+  data.table(location_id=z, 
+             start=seq(as.IDate("2000-01-01"),by=7L,length=200),
+             end=seq(as.IDate("2000-01-07"),by=7L,length=200),
+             pm25=rnorm(200,mean=15),
+             no2=rnorm(200,mean=25) )
 } ))
 
-n_ppt <- 50
+n_ppt <- 30
 addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
-addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)]
+addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.05)]
 
 #repl=TRUE because it's possible for an address to be lived at multiple different time intervals:
 addr_history <- addr_history[,
@@ -23,7 +25,7 @@ addr_history <- addr_history[,
                              ]
 addr_history
 
-#note that not all of these 2000 locations in exposure_dataset3 were "lived at" in this cohort:
+#note that not all locations in exposure_dataset3 were "lived at" in this cohort:
 length(unique(addr_history$location_id))
 
 #also note that it's possible for different participants to live at the same address.
@@ -79,6 +81,7 @@ test_that("example address history is non-overlapping",{
   addr_history_original <- copy(addr_history)
   exposure_dataset3_original <- copy(exposure_dataset3)
 
+  
 z <- intervalintersect(x=exposure_dataset3,
                        y=addr_history,
                        interval_vars=c(

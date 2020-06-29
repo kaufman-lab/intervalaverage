@@ -653,7 +653,7 @@ test_that("intervalaverage large data cran skip",{
 
   ##more realism
   set.seed(12323)
-  n <- 1e5
+  n <- 5000
   x <- matrix(as.integer(round(runif(n=n*2, 0L,1000L))),ncol=2)
   x <- as.data.table(t(apply(x,1,sort)))
   setnames(x,names(x),c("start0","end0"))
@@ -674,12 +674,15 @@ test_that("intervalaverage large data cran skip",{
 
   #insert missingness
   a[sample(1:nrow(a),size=floor(.2*nrow(a))),`:=`(value1=NA,value2=NA)]
+  
   b <- matrix(as.integer(round(runif(n=n*2, 0L,1000L))),ncol=2)
   b <- as.data.table(t(apply(b,1,sort)))
   setnames(b,names(b),c("start","end"))
   b[, id1:=rbinom(n,3,prob=.3)]
   b[, id2:=rbinom(n,7,prob=.5)]
 
+  #create a duplicated y row:
+  b <- rbind(b[1],b)
 
 
   expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),

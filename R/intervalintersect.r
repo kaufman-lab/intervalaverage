@@ -29,6 +29,8 @@
 #'  (with the exception of switched column names in the case of column name conflicts as just discussed)
 #' this function is basically just a wrapper for the following code:\cr \cr
 #'
+#' intervalintersect will still work when there are overlapping intervals within groups.
+#'
 #' \code{data.table::setkeyv(x, c(group_vars,interval_vars))} \cr
 #' \code{data.table::setkeyv(y, c(group_vars,interval_vars))} \cr
 #' \code{#do a cartesian inner interval join,} \cr
@@ -84,16 +86,14 @@
 #'  addr_start=c(1L,2L,3L,4L,1L),
 #'  addr_end=c(9L,12L,13L,8L,10L)
 #')
-#'
-#'#intervalintersect will still work when there are overlapping intervals within a table:
-#'is.overlapping(y2,interval_vars =c("addr_start","addr_end") ,group_vars="addr_id")
+
 #' @export
 intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
 
 
   x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
-  y_interval_vars <- interval_vars
+  y_interval_vars <- as.vector(interval_vars)
 
   is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
   is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
