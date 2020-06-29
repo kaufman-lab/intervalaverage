@@ -11,14 +11,11 @@
 #' set of intervals) returning the set of
 #' exposure intervals at addresses clipped to exactly when the participant lived at that address.
 #'
-#'  All intervals are treated as closed (ie inclusive of the start and
-#'   end values in interval_vars).
+#' All intervals are treated as closed (ie inclusive of the start and end values in the columns
+#' specified by interval_vars)
 #'
 #' x and y are not copied but rather passed by reference to function internals
 #' but the order of these data.tables is restored on function completion or error,
-#' setting the keys of x and y explicitly via `setkeyv(x,c(group_vars,interval_vars))` and
-#' `setkeyv(y,c(group_vars,interval_vars))` will save the function from reordering the rows back
-#' to their original state.
 #'
 #' Technically speaking this is just an inner cartesian join where the last two join variables are
 #' doing a non-equi join for partial overlaps. Then each interval intersect is calculated using max and min.
@@ -44,16 +41,18 @@
 #'
 #'
 #'
-#' @param x A data.table of exposures with two columns designating intervals with a column for address id and a column for ppt it.
-#' @param y A data.table containing an address history (with two columns designating intervals)
-#'  where these intervals are non-overlapping within ppt_id
+#' @param x A data.table with two columns defining closed intervals (see also interval_vars parameter)
+#' @param y A data.table with two columns defining closed intervals (see also interval_vars parameter)
 #' @param interval_vars Either a length-2 character vector denoting column names in both x and y or a named
 #'  length-2 character vector where the names are column names in x and the values are column names in y.
+#' These column names specify columns in x and y that define
+#' closed (inclusive) starting and ending intervals. The column name
+#' specifying the lower-bound column must be specified first.
 #' these columns in x and y must all be of the same class and either be integer or IDate.
 #' @param group_vars NULL, or either a character vector denoting the column name(s) in x and y,
 #'  or a named character vector where the name is the column name in x and the value is the column name in y.
 #'  This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
-#'  such that intervals in x will only be joined to overlapping in intervals in y when the group_vars values are the same.
+#'  such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
 #' @param interval_vars_out The column names of the interval columns in the return data.table.
 #' By default the return table will contain columns \code{c("start","end")}.
 #' If your input tables already contain these columns,
@@ -123,10 +122,7 @@
 #'"addr_id")
 #'
 #' @export
-intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
-                           interval_vars_out=c("start","end"),
-                           verbose=FALSE
-                           ){
+intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
 
 
@@ -137,20 +133,20 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
 
   if(is_not_preferred_keyx){
-    statex <- savestate(x,names(y))
+    statex <- savestate(x)
     if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+    on.exit(setstate(x,statex))
   }else{
     statex <-NULL
   }
 
   if(is_not_preferred_keyy){
-    statey <- savestate(y,names(x))
+    statey <- savestate(y)
     if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
+    on.exit(setstate(y,statey),add=TRUE)
   }else{
     statey <-NULL
   }
-
-  tryCatch(expr = {
 
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=x_interval_vars]){
@@ -193,24 +189,7 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL,
   data.table::set(z, j=interval_vars_out[1],value=pmax(z[[x_interval_vars[1]]],z[[y_interval_vars[1]]] ) )
   data.table::set(z, j=interval_vars_out[2],value=pmin(z[[x_interval_vars[2]]],z[[y_interval_vars[2]]] ) )
 
-  },
-  error=function(e){
-
-    if(is_not_preferred_keyx){
-      setstate(x,statex)
-    }
-    if(is_not_preferred_keyy){
-      setstate(y,statey)
-    }
-    stop(e)
-  })
-
-
-  if(is_not_preferred_keyx){
-    setstate(x,statex)
-  }
-  if(is_not_preferred_keyy){
-    setstate(y,statey)
-  }
+  other_vars <- setdiff(names(z),c(interval_vars_out,group_vars))
+  setcolorder(z, c(group_vars, interval_vars_out, other_vars))
   z[]
 }

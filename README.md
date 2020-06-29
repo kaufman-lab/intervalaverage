@@ -34,13 +34,17 @@ of looping directly in R.
 
 ## Installation
 
-Right now, the only way to install the package is from
+You can install the current development version of the from
 [GitHub](https://github.com/):
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
+library(devtools)
+install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
 ```
+
+or you can manually clone this repository from github and install from
+source.
 
 ## Example
 

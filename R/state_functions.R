@@ -10,10 +10,10 @@
 
 ##exclude names for temporary variable choice
 
-savestate <- function(x,exclude_names=NULL){
+savestate <- function(x){
   original_colnames <- copy(names(x))
   rowindex_colname <- "rowindex"
-  while(rowindex_colname %in% c(exclude_names,names(x))) rowindex_colname <- paste0("i.",rowindex_colname)
+  while(rowindex_colname %in% names(x)) rowindex_colname <- paste0("i.",rowindex_colname)
   x[,eval(rowindex_colname):=1:.N]
 
   k <- key(x)
@@ -28,16 +28,14 @@ setstate <- function(x,state){
   stopifnot(all(required_columns %in% names(x)))
 
   setorderv(x,state$rowindex_colname)
-  setattr(x, name="sorted",value=state$key)
+  setkeyv(x,state$key)
   #explicitly remove index for clarity,
   #although this would happen anyway in the next line:
   x[, eval(state$rowindex_colname):=NULL]
   #remove all new columns:
   newcols <- setdiff(names(x),state$original_colnames)
   if(length(newcols)){
-    for(i in 1:length(newcols)){
-      set(x,j=newcols[i],value=NULL)
-    }
+    set(x,j=newcols,value=NULL)
   }
   x
 }

@@ -7,19 +7,23 @@
 is.overlapping(x, interval_vars, group_vars = NULL, verbose = FALSE)
 }
 \arguments{
-\item{x}{A data.table}
+\item{x}{A data.table with two columns defining closed intervals (see also interval_vars).}
 
-\item{interval_vars}{A length-2 character vector corresponding to column names of x which designate the starting and ending intervals}
+\item{interval_vars}{A length-2 character vector corresponding to column names of x which designate
+the closed (inclusive) starting and ending intervals. The column name
+specifying the lower-bound column must be specified first.}
 
-\item{group_vars}{NULL or a character vector corresponding to column names of x. overlap checks will occur within groups defined by the columns specified here.}
+\item{group_vars}{NULL or a character vector corresponding to column names of x.
+overlap checks will occur within groups defined by the columns specified here.}
 
 \item{verbose}{prints additional information, default is FALSE}
 }
 \value{
-length-1 logical vector
+length-1 logical vector. TRUE if there are overlaps, FALSE otherwise.
 }
 \description{
-Test whether a data.table contains intervals which overlap with other intervals in diferent rows, possibly within groups
+Test whether a data.table contains intervals which partially or completely overlap
+with other intervals in diferent rows, possibly within groups
 }
 \examples{
 x <- data.table(start=c(1,2),end=c(3,4))

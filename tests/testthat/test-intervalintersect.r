@@ -6,10 +6,13 @@ test_that("intervalintersect",{
 
 
 ##leverage the structure of the example from the vignette for some tests
-exposure_dataset3 <- rbindlist(lapply(1:500, function(z){
-  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7L,length=500),
-             end=seq(as.IDate("2000-01-07"),by=7L,length=500),pm25=rnorm(4,mean=15),
-             no2=rnorm(4,mean=25) )
+  n_weeks <- 500
+  n_loc <- 500
+exposure_dataset3 <- rbindlist(lapply(1:n_loc, function(z){
+  data.table(location_id=z, start=seq(as.IDate("2000-01-01"),by=7L,length=n_weeks),
+             end=seq(as.IDate("2000-01-07"),by=7L,length=n_weeks),
+             pm25=rnorm(n_weeks,mean=15),
+             no2=rnorm(n_weeks,mean=25) )
 } ))
 
 n_ppt <- 50
@@ -23,7 +26,7 @@ addr_history <- addr_history[,
                              ]
 addr_history
 
-#note that not all of these 2000 locations in exposure_dataset3 were "lived at" in this cohort:
+#note that not all of these n_loc locations in exposure_dataset3 were "lived at" in this cohort:
 length(unique(addr_history$location_id))
 
 #also note that it's possible for different participants to live at the same address.
@@ -71,6 +74,13 @@ test_that("example address history is non-overlapping",{
                               group_vars="location_id")
   )
 
+  #scramble the order and set different keys to check if state is returned after
+  setkey(exposure_dataset3,no2)
+  addr_history <- addr_history[sample(1:.N)]
+  setkey(addr_history,addr_end)
+
+  addr_history_original <- copy(addr_history)
+  exposure_dataset3_original <- copy(exposure_dataset3)
 
 z <- intervalintersect(x=exposure_dataset3,
                        y=addr_history,
@@ -82,7 +92,8 @@ z <- intervalintersect(x=exposure_dataset3,
                        interval_vars_out=c("start2","end2")
 )
 
-
+expect_equal(exposure_dataset3_original, exposure_dataset3)
+expect_equal(addr_history_original,addr_history)
 
 #if the address history and the exposure datasets are both non-overlapping
 #then the resulting intersect must also be non-overlapping

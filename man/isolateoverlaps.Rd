@@ -12,41 +12,42 @@ isolateoverlaps(
 )
 }
 \arguments{
-\item{x}{A data.table}
+\item{x}{A data.table containing a set of intervals.}
 
 \item{interval_vars}{A length-2 character vector denoting column names in x.
-these columns must be of the same class and be integer or IDate.}
+these columns must be of the same class and be integer or IDate. The column name
+specifying the lower-bound column must be specified first.}
 
 \item{group_vars}{NULL, or a character vector denoting column names in x.
 These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 within categories defined by the combination of the group variables.}
 
 \item{interval_vars_out}{The desired column names of the interval columns in the return data.table.
-By default the return table will contain columns \code{c("start","end")}.
-If x already contains columns with those names,
-you need to either specify \code{interval_vars_out} to be non-conflicting names with columns in x.
-Or you rename columns in x to not contain columns named \code{c("start","end")}.}
+By default these columns will be generated to be named \code{c("start","end")}.
+If x contains columns with the same name as the desired output column
+names specified in \code{interval_vars_out}, the function will return in error to avoid naming
+confusion in the return table.}
 }
 \value{
 A data.table with columns \code{interval_vars_out} which denote the start and
-stop period for each new interval. This return table also contains columns in x.
+stop period for each new interval. This return table also contains columns in x
+(including the original interval columns).
 }
 \description{
 Given a set of intervals in a table, isolate sections of intervals that are overlapping
 with other in intervals (optionally, within groups). Returns a data.table that contains
 intervals which are mutually non-overlapping or exactly overlapping with other intervals
-(ie there are no partially overlapping intervals) (again, possibly within groups).  The original interval data is conserved
+(ie there are no partially overlapping intervals) (optionally within groups).
+Note that this doesn't just return the intersects; the original interval data is conserved
 such that for each interval/row in x, the return table has one or more
 non-overlapping intervals that together form the union of that original interval.
 }
 \details{
-All intervals are treated as closed (ie inclusive of the start and end values in interval_vars)
+All intervals are treated as closed (ie inclusive of the start and end values in the columns
+specified by interval_vars)
 
 x is not copied but rather passed by reference to function internals
-but the order of this data.tables is restored on function completion or error,
-setting the key of x explicitly via \code{setkeyv(x,c(group_vars,interval_vars))}
-will save the function from reordering the rows back
-to their original state.
+but the order of this data.tables is restored on function completion or error.
 }
 \examples{
 
@@ -60,10 +61,8 @@ x2z
 #x2b represents x2 when where exposure values in overlapping intervals have been averaged
 x2b <- x2z[, list(exposure_value=mean(exposure_value)),by=c("addr_id","start","end")]
 
-x2
-x2b
-
 }
 \seealso{
-\code{\link{is.overlapping}} To test if a table contains overlapping intervals within values of \code{group_vars}
+\code{\link{is.overlapping}} To test if a table contains overlapping intervals within
+values of \code{group_vars}
 }
