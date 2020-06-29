@@ -275,14 +275,16 @@ Often we're interested in calculating averages over different periods for differ
 First to make this more realistic, let's generate ~20 years of data at 2000 locations:
 
 ```{r}
+n_locs <- 2000
+n_weeks <- 1000
 exposure_dataset3 <- rbindlist(
-  lapply(1:2000, function(id) {
+  lapply(1:n_locs, function(id) {
     data.table(
       location_id = id,
-      start = seq(as.IDate("2000-01-01"), by = 7, length = 1000),
-      end = seq(as.IDate("2000-01-07"), by = 7, length = 1000),
-      pm25 = rnorm(4, mean = 15),
-      no2 = rnorm(4, mean = 25)
+      start = seq(as.IDate("2000-01-01"), by = 7, length = n_weeks),
+      end = seq(as.IDate("2000-01-07"), by = 7, length = n_weeks),
+      pm25 = rnorm(n_weeks, mean = 15),
+      no2 = rnorm(n_weeks, mean = 25)
     )
   })
 )
@@ -293,10 +295,10 @@ exposure_dataset3
 Now let's pick a different random end date for each location's averaging period. We'll define the end
 date as 3 years after start that to define three-year intervals for every location.
 ```{r}
-averaging_periods3 <- data.table(location_id=1:2000,
+averaging_periods3 <- data.table(location_id=1:n_locs,
                                  start=sample(
-                                   seq(as.IDate("2000-01-01"),as.IDate("2019-12-31"),by=1),
-                                   2000
+                                   x=seq(as.IDate("2000-01-01"),as.IDate("2019-12-31"),by=1),
+                                   size=n_locs
                                  )
 )
 averaging_periods3[,end:=start+round(3*365.25)]
