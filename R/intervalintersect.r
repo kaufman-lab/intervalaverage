@@ -81,12 +81,6 @@
 #'intervalintersect(x,y,
 #'  interval_vars=c(exposure_start="addr_start",exposure_end="addr_end"),"addr_id")
 #'
-#'y2 <- data.table(addr_id=c(1,2,2,2,3),
-#'  ppt_id=c(1,1,1,1,2),
-#'  addr_start=c(1L,2L,3L,4L,1L),
-#'  addr_end=c(9L,12L,13L,8L,10L)
-#')
-
 #' @export
 intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
