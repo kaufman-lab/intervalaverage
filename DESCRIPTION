@@ -1,5 +1,5 @@
 Package: intervalaverage
-Title: Time-weighted averaging for interval data
+Title: Time-Weighted Averaging for Interval Data
 Version: 0.0.0.9003
 Authors@R: 
     person(given = "Michael",
@@ -11,10 +11,10 @@ Description: Perform fast and memory efficient time-weighted averaging of values
 	This package is useful in the context of data measured or represented
 	as constant values over intervals on a one-dimensional discrete axis 
 	(e.g. time-integrated averages of a curve over defined periods). 
-	The intervalaverage package was written specifically to deal with air 
+	This package was written specifically to deal with air 
 	pollution data recorded or predicted as averages over sampling periods. 
 	Data in this format often needs to be shifted to non-aligned periods 
-	or averaged up to longer durations 	(e.g. averaging data measured over 
+	or averaged up to periods of longer duration (e.g. averaging data measured over 
 	sequential non-overlapping periods to calendar years). 
 License: GPL-3
 Encoding: UTF-8
