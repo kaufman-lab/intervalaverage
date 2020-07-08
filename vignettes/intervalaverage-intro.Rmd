@@ -77,13 +77,17 @@ argument. And the variables in `x` that you want averages calculated for are spe
 via `value_vars`.
 
 ```{r}
-averaged_exposures <- intervalaverage(x=exposure_dataset,y=averaging_periods,                                      interval_vars=c("start","end"),value_vars=c("pm25","no2"))
+averaged_exposures <- intervalaverage(x=exposure_dataset,y=averaging_periods,
+                                      interval_vars=c("start","end"),value_vars=c("pm25","no2")
+                                      )
 averaged_exposures[, list(start,end,pm25,no2)]
 ```
-The return value of the `intervalaverage` function is a `data.table`. Above are printed just the first four columns of that return object.  The return data.table always the exact intervals specified in y (and, as such,
+The return value of the `intervalaverage` function is a `data.table`. 
+Just the first four columns of that return data.table are printed. 
+The return data.table always contains the exact intervals specified in y (and, as such,
 the number of rows of the return is always the number of rows in `y`).  The return also contains a column
-for each `value_var` specified from x. These columns contain the values of the variables from x averaged
-over periods in y. Note that the value of the pm25 in the first row is what we calculated manually above. 
+for each `value_var` specified from x. These columns contain the values of the variables from `x` averaged
+over periods in `y`. Note that the value of the pm25 in the first row is what we calculated manually above. 
 
 Note that the third entry for both the `pm25` and the `no2` column is `NA` or missing. This makes sense because the `x` (
 `exposure_dataset`) didn't have measurements for every day in the interval in `y` (`averaging_periods`) 
@@ -158,7 +162,8 @@ averaging_periods2 <- CJ.dt(averaging_periods, unique(exposure_dataset2[,list(lo
 ```
 
 
-Now, to take averages of `x` values over intervals in `y` within groups, all we have to do is use the same call as above to intervalaverage while specifying one more argument: `group_vars="location_id"`.
+Now, to take averages of `x` values over intervals in `y` within groups, all we have to do is
+use the same call as in the first example to `intervalaverage` while specifying one more argument: `group_vars="location_id"`.
 ```{r}
 intervalaverage(x=exposure_dataset2,
                 y=averaging_periods2,
@@ -167,8 +172,11 @@ intervalaverage(x=exposure_dataset2,
                 group_vars="location_id",
                 required_percentage = 75)[, list(location_id, start,end, pm25,no2)]
 ```
+The `group_vars` argument tells the `intervalaverage` function to calculate averages separately within 
+each group.
+
 Of course, we could have completed the above by calling `intervalaverage` repeatedly for each value of `location_id` 
-in x an y using a for loop. The reason to prefer using the `group_vars` approach is that
+in `x` and `y` using a for loop. The reason to prefer using the `group_vars` approach is that
 the `intervalaverage` function is written to be faster than looping when with dealing with grouping.
 It also saves you the trouble of writing a loop and combining the results.
 
@@ -206,7 +214,7 @@ intervalaverage(exposure_dataset_overlapping,averaging_periods2,
 That's because the `intervalaverage` function is written to throw an error if there are overlaps in within groups. This
 is to encourage the user to explicitly and conciously deal with overlaps prior to averaging.
 
-Note that we can also check whether there are overlapping intervals using `is.overlapping`
+Note that we can also check whether there are overlapping intervals (within specified groups) using `is.overlapping`
 ```{r}
 is.overlapping(exposure_dataset_overlapping, interval_vars=c('start','end'),group_vars="location_id")
 ```
@@ -222,19 +230,21 @@ exposure_dataset_isolated[1:15] #only show the first 15 rows
 ```
 Inspect the above table and compare it to `exposure_dataset`. `start2` and `end2` are the new intervals
 and `start` and `end` are the original intervals. Note how there are two rows for every
-overlapping period (ie in the `start2` and `end2` columnds), but the pm25 and no2 values differ 
+overlapping period (ie in the `start2` and `end2` columns), but the pm25 and no2 values differ 
 within these rows since one value comes from the first overlapping period and the second value comes 
-from the second overlapping period
+from the second overlapping period.
 
 We can then average exposure values within periods of exact overlap:
 ```{r}
 exposure_dataset_overlaps_averaged <-
   exposure_dataset_isolated[, list(pm25=mean(pm25),no2=mean(no2)),by=c("location_id","start2","end2")]
+
 setnames(exposure_dataset_overlaps_averaged, c("start2","end2"),c("start","end"))
+exposure_dataset_overlaps_averaged
 ```
 
 This version of the dataset where values in overlapping periods have already been averaged can 
-now be averaged to a the times in `averaging_periods2` using the `intervalaverage` function:
+now be averaged to the times in `averaging_periods2` using the `intervalaverage` function:
 
 ```{r}
 intervalaverage(exposure_dataset_overlaps_averaged,
@@ -247,8 +257,8 @@ intervalaverage(exposure_dataset_overlaps_averaged,
 
 ## Overlapping averaging periods 
 
-While overlapping periods in x are not allowed, there's nothing wrong with averaging to multiple overlapping
-periods in y at the same time:
+While overlapping periods in `x` are not allowed, there's nothing wrong with averaging to multiple 
+partially overlapping periods in y at the same time:
 
 ```{r}
 
@@ -269,6 +279,10 @@ intervalaverage(exposure_dataset_overlaps_averaged,
                 group_vars="location_id",
                 required_percentage = 75)[,list(location_id, start,end,pm25,no2)]
 ```
+
+Note that if you specify identical intervals (within groups defined by `group_vars`), duplicate intervals
+in `y` will be dropped with a warning resulting in a return data.table with fewer rows than in `y`.
+
 
 ## Averaging values measured over intervals: different averaging periods for different groups
 Often we're interested in calculating averages over different periods for different locations.
@@ -292,8 +306,9 @@ exposure_dataset3 <- rbindlist(
 exposure_dataset3
 ```
 
-Now let's pick a different random end date for each location's averaging period. We'll define the end
-date as 3 years after start that to define three-year intervals for every location.
+Now let's pick a different random start and end date for each location's averaging period. We'll pick
+start dates at random and define the end the date as 3 years after each start date, thus
+creating different three-year intervals for every location.
 ```{r}
 averaging_periods3 <- data.table(location_id=1:n_locs,
                                  start=sample(
@@ -318,7 +333,8 @@ earliest possible latest possible averaging period start date is Dec 31, 2019 bu
 in early 2019. The `required_percentage` argument could be set here to something less than the default of 100
 to compute partial averages and get fewer missing values.
 
-Finally, a quick trick if you'd like to calculate 1-year, 2-year, and 3-year averages all at once:
+Finally, a quick trick if you'd like to calculate 1-year, 2-year, and 3-year averages all at once, 
+starting with a fixed set of end dates:
 ```{r}
 averaging_periods3[, avg3yr:=end-round(3*365.25)]
 averaging_periods3[, avg2yr:=end-round(2*365.25)]
@@ -382,7 +398,7 @@ address_history0
 The first thing to note is that the address intervals (`addr_start` and `addr_end`) are non-overlapping,
 which is good because `intervalaverage` requires non-overlapping intervals as we saw previously.
 (If the addresses were overlapping we might consider using the `isolateoverlaps` function on it to identify
-overlapping periods and potentially make decisions about which address to use in each overlapping period).
+overlapping periods in the address history and make decisions about which address to use in each overlapping period).
 
 The `address_history0` table has one participant with three rows and two addresses (`addr_id`s 1 and 2).
 In practice this would be the same data if the two intervals where `ppt_id==1 & addr_id==2` were
@@ -428,15 +444,17 @@ setdiff(exposure_dataset5$addr_id,exposure_addresss_table$addr_id)
 Finally, note that the syntax of `interval_vars` allows those columns to be named differently
 in `x` and `y` via a named vector: `interval_vars=c(exposure_start="addr_start",exposure_end="addr_end")`.
 This is useful for keeping track of interval names since the return data.table has three sets of intervals:
-those from x, those from y, and their intersections.
+those from `x`, those from `y`, and their intersections.
 
 
 ### Interval intersects: averaging with a larger address history
-starting with the unique set of locations extracted from `exposure_dataset3`, let's generate 300 participants and a random number of addresses each participant lived at
+starting with the unique set of locations extracted from `exposure_dataset3`, let's generate 300 participants 
+and a random number of addresses each participant lived at
 ```{r}
 n_ppt <- 300
-addr_history <- data.table(ppt_id=paste0("ppt",1:n_ppt))
-addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.005)] 
+addr_history <- data.table(ppt_id=paste0("ppt",sprintf("%03d", 1:n_ppt)))
+addr_history[, n_addr := rbinom(.N,size=length(unique(exposure_dataset3$location_id)),prob=.001)]
+addr_history[n_addr <1L, n_addr := 1L] 
 
 #repl=TRUE because it's possible for an address to be lived at multiple different time intervals:
 addr_history <- addr_history[, 
@@ -449,7 +467,9 @@ addr_history
 length(unique(addr_history$location_id)) 
 
 #also note that it's possible for different participants to live at the same address.
-addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),by=location_id][,sum(loc_with_more_than_one_ppt)]
+addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),
+             by=location_id][,
+                             sum(loc_with_more_than_one_ppt)]
 #Because of the way I generated this data, it's way more common than you'd expect in a real cohort 
 #but it does happen especially in cohorts with familial recruitment or people living in nursing home complexes.
 ```
@@ -461,11 +481,11 @@ I've generated intervals which are non-overlapping representing the particpant a
 
 sample_dates <- function(n){
   stopifnot(n%%2==0)
-  dateseq <- seq(as.IDate("1995-01-01"),as.IDate("2017-01-01"),by=1)
+  dateseq <- seq(as.IDate("1960-01-01"),as.IDate("2015-01-01"),by=1)
   dates <- sort(sample(dateseq,n))
-  #half of the time, make the last date "9999-01-01" which represents that the currently
+  #90% of the time, make the last date "9999-01-01" which represents that the currently
    #lives at that location and we're carrying that assumption forward
-  if(runif(1)>.5){
+  if(runif(1)>.1){
     dates[length(dates)] <- as.IDate("9999-01-01") 
   }
   dates
@@ -498,7 +518,7 @@ is.overlapping(addr_history,interval_vars=c("addr_start","addr_end"),
 
 This table passes that check because I've generated the data to be non-overlapping, but often times
 people report overlapping address histories and analytic decisions need to be made to de-overlap them
-(agein, the `isolateoverlap` function would be useful for isolating sections of overlapping address intervals).
+(again, the `isolateoverlap` function would be useful for isolating sections of overlapping address intervals).
 
 
 ### interval intersects is a cartesian join
@@ -577,3 +597,33 @@ all.equal(z,z_addr)
 
 z
 ```
+
+
+(note that this example of a one to many join maybe isn't a true "cartesian" join, but intervalintersect is capable
+of doing a true many-to-many cartesian expansion if provided the right datasets, although I'm not sure
+in context that would actually make any sense.)
+
+
+In any case, the morale here is that whether the exposures are stored by location or address, using 
+`intervalintersect` in combination will result in a dataset containing relevant exposures clipped 
+to each address period.
+
+This dataset can then be used to calculate averages over where a participant lived in a given period:
+
+
+
+
+```{r}
+
+final_averaging_periods <- data.table(ppt_id=sort(unique(addr_history$ppt_id)))
+final_averaging_periods[, end2:=sample(seq(as.IDate("2003-01-01"),as.IDate("2015-01-01"),by=1),.N)]
+final_averaging_periods[,start2:=as.IDate(floor(as.numeric(end2-3*365.25)))]
+final_averaging_periods
+
+intervalaverage(z,final_averaging_periods, interval_vars=c("start2","end2"),
+                value_vars=c("pm25","no2"),group_vars="ppt_id",required_percentage = 95
+                )
+```
+
+There's lots of missingness because the address history I generated is nowhere near complete, but this
+demonstrates how important it is to have a good address history! 
