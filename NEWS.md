@@ -1,3 +1,9 @@
+
+# intervalaverage 0.0.0.9004 (Development)
+
+1. More improvements to the vignette. The final example is now complete 
+(previously it did not actually average the clipped exposures).
+
 # intervalaverage 0.0.0.9003 (Development)
 
 1. More minor improvements in documentation (edits to intro vignette and help files)
