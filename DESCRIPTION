@@ -1,6 +1,6 @@
 Package: intervalaverage
 Title: Time-Weighted Averaging for Interval Data
-Version: 0.0.0.9004
+Version: 0.0.0.9005
 Authors@R: 
     person(given = "Michael",
            family = "Young",

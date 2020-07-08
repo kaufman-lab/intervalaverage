@@ -679,6 +679,19 @@ test_that("intervalaveraging", {
 
 
 
+  ##for some reason, expect_warning make all the arguments copied rather than passed by ref
+  ##here I want to test to make sure that when there are overlapping intervals in y, it still returns y to its original state
+  #but in order to test this, I can't wrap in expect_warning
+
+  bleh <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
+                          value_vars=c("value1","value2"),
+                          group_vars=c("id1","id2"),
+                          skip_overlap_check=FALSE)
+
+
+  expect_false("rowindex" %in% names(b))
+
+
   expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
                           value_vars=c("value1","value2"),
                           group_vars=c("id1","id2"),

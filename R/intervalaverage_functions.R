@@ -354,7 +354,11 @@ intervalaverage <- function(x,
     warning("sum(duplicated(y[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups of y.
          removing these duplicated rows automatically")
-    y <- y[!ydups]
+    yytemp <- y[!ydups]
+    if(is_not_preferred_keyy){
+      setstate(y,statey) #return original passed-by-ref object to its original state
+    }
+    y <- yytemp
   }
 
   if(!skip_overlap_check){
