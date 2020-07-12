@@ -2,3 +2,6 @@
 
 language: R
 cache: packages
+env:
+  global:
+    - R_CHECK_ARGS="--no-build-vignettes --no-manual" # change from default which is --as-cran

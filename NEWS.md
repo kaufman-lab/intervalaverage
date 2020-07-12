@@ -1,3 +1,7 @@
+# intervalaverage 0.0.0.9007 (Development)
+
+1. Performance check is no longer tested on cran.
+
 # intervalaverage 0.0.0.9006 (Development)
 
 1. A new unit test/regression test has been added to ensure that the function is using the optimal algorithm based on data.table performance.
