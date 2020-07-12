@@ -1,3 +1,7 @@
+# intervalaverage 0.0.0.9006 (Development)
+
+1. A new unit test/regression test has been added to ensure that the function is using the optimal algorithm based on data.table performance.
+
 # intervalaverage 0.0.0.9005 (Development)
 
 1. fixed a bug where the y argument of intervalaverage was not being restored to its original state 
