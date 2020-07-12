@@ -1,5 +1,5 @@
 test_that("performance", {
-
+  skip_on_cran()
 
   uid <- 1L:1000L
   x <- CJ(id=uid,start=seq(1L,2000L,by=7L))
