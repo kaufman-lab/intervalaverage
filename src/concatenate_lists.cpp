@@ -21,9 +21,10 @@ List concatenate_lists(
     return_list[i] = a[i];
     return_list_names[i] = names_a[i];
   }
+
   for(int i = 0; i < length_b; i++) {
-    return_list[length_b+i] = b[i];
-    return_list_names[length_b+i] = names_b[i];
+    return_list[length_a+i] = b[i];
+    return_list_names[length_a+i] = names_b[i];
   }
 
   return(return_list);

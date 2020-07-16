@@ -379,35 +379,20 @@ intervalaverage <- function(x,
 
   #these copies will be deleted on function exit thanks to the on.exit state restore calls
 
+  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_"),x)))
   nobs_vars_names <- paste0("nobs_",value_vars)
   q <- x[y[!ydups],
     {
-      browser()
 
-      l <- Cintervalaverage(as.matrix(.SD),
+
+
+
+      Cintervalaverage(as.matrix(.SD),
                             intervalaverage__xstart_copy,
                             intervalaverage__xend_copy,
                             intervalaverage__ystart_copy[1],
-                            intervalaverage__yend_copy[1]
-      )
-
-
-      values_and_nobs <- lapply(.SD,function(v){
-        Cweighted_mean(v,l$durations) #returns list of length 2
-      })
-      values_and_nobs <- unlist(values_and_nobs,recursive=FALSE)
-      nms <- character(length=length(value_vars)*2)
-      for(i in 0:(length(value_vars)-1)){
-        nms[2*i+1] <- value_vars[i+1]
-        nms[2*i+2] <- nobs_vars_names[i+1]
-      }
-
-      setattr(values_and_nobs, "names",nms)
-
-      #return list: concatenate with values list and nobs_vars list which are prenamed
-      c(
-        l[c("xduration","xminstart","xmaxend")],
-        values_and_nobs
+                            intervalaverage__yend_copy[1],
+                            value_names
       )
 
     },
@@ -416,7 +401,6 @@ intervalaverage <- function(x,
          paste0(interval_vars[2],">=",interval_vars[1]),
          paste0(interval_vars[1],"<=",interval_vars[2])),
     .SDcols=value_vars]
-
 
 
 
@@ -443,7 +427,7 @@ intervalaverage <- function(x,
   #this should probably be an integer
   #but was historically a numeric so leaving this as is for now
 
-  q[is.na(xduration), c("xduration",nobs_vars_names):=0]
+
   stopifnot(q[,all(xduration<=yduration)])
 
   #fix column type of dates since .Internal(pmin) converts to numeric

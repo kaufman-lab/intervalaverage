@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // Cintervalaverage
-List Cintervalaverage(NumericMatrix values_matrix, IntegerVector start_vector, IntegerVector end_vector, int start_scalar, int end_scalar);
-RcppExport SEXP _intervalaverage_Cintervalaverage(SEXP values_matrixSEXP, SEXP start_vectorSEXP, SEXP end_vectorSEXP, SEXP start_scalarSEXP, SEXP end_scalarSEXP) {
+List Cintervalaverage(NumericMatrix values_matrix, IntegerVector start_vector, IntegerVector end_vector, int start_scalar, int end_scalar, CharacterVector value_names);
+RcppExport SEXP _intervalaverage_Cintervalaverage(SEXP values_matrixSEXP, SEXP start_vectorSEXP, SEXP end_vectorSEXP, SEXP start_scalarSEXP, SEXP end_scalarSEXP, SEXP value_namesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -16,13 +16,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type end_vector(end_vectorSEXP);
     Rcpp::traits::input_parameter< int >::type start_scalar(start_scalarSEXP);
     Rcpp::traits::input_parameter< int >::type end_scalar(end_scalarSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cintervalaverage(values_matrix, start_vector, end_vector, start_scalar, end_scalar));
+    Rcpp::traits::input_parameter< CharacterVector >::type value_names(value_namesSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cintervalaverage(values_matrix, start_vector, end_vector, start_scalar, end_scalar, value_names));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_intervalaverage_Cintervalaverage", (DL_FUNC) &_intervalaverage_Cintervalaverage, 5},
+    {"_intervalaverage_Cintervalaverage", (DL_FUNC) &_intervalaverage_Cintervalaverage, 6},
     {NULL, NULL, 0}
 };
 

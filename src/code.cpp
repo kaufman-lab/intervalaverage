@@ -9,7 +9,9 @@ List Cintervalaverage(
                  IntegerVector start_vector,
                  IntegerVector end_vector,
                  int start_scalar,
-                 int end_scalar) {
+                 int end_scalar,
+                 CharacterVector value_names
+                 ) {
 
 
   //warning this function contains no error checks
@@ -20,7 +22,18 @@ List Cintervalaverage(
   int n_values = values_matrix.ncol();
   int n = start_vector.length();
 
+
   List values_list(2*n_values);
+
+  for(int j = 0; j < n_values; j++){
+
+    values_list[2*j] = NA_REAL;
+    values_list[2*j + 1] = 0;
+
+  }
+
+
+  values_list.names() = value_names;
 
 
   if(start_vector[0] == NA_INTEGER){
@@ -30,12 +43,7 @@ List Cintervalaverage(
                           Named("xminstart") = NA_INTEGER,
                           Named("xmaxend") = NA_INTEGER);
 
-    for(int j = 0; j < n_values; j++){
 
-      values_list[2*j] = NA_REAL;
-      values_list[2*j + 1] = 0;
-
-    }
 
     return concatenate_lists(L,values_list);
 
@@ -71,13 +79,16 @@ List Cintervalaverage(
   IntegerVector sum_durations(n_values, 0.0);
 
 
+
   for(int j = 0; j < n_values; j++){
 
     NumericVector values = values_matrix( _ , j );
 
     for(int i = 0; i < n; i++){
 
-      if(i ==0){
+      if(j ==0 ){
+
+
         //take the max of the starts
         if(start_vector[i] > interval_intersect_start[i]){
           interval_intersect_start[i] = start_vector[i];
@@ -111,11 +122,14 @@ List Cintervalaverage(
 
     }
 
+
+
     values_list[2*j] = sum_product[j]/sum_durations[j];
     values_list[2*j + 1] = sum_durations[j];
 
 
   }
+
 
 
     List L = List::create(Named("xduration") = sum_intersectlength,
