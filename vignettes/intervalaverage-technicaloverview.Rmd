@@ -33,6 +33,11 @@ I was not able to find a package which accomplished this task, much less
 a package which accomplished it quickly and with minimal memory overhead.
 
 
+## This vignette
+This vignette describes some of the decision-making behind how the intervalaverage function was written.
+
+
+
 ## A brief description of the intervalaverage algorithm (with a focus on explaining why seemingly convoluted choices were made in the function body)
 
 The `intervalaverage` function starts by merging periods in y to periods in x by

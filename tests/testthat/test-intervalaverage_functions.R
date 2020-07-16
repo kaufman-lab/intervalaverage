@@ -244,6 +244,42 @@ test_that("intervalaveraging restores state even when it throws an error", {
 
 })
 
+test_that("intervalaverage only partially observed schedule and missingness:",{
+
+  x <- data.table(start=1L,end=9L,value=3)
+  y <- data.table(start=1L,end=10L)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value,
+  as.numeric(NA))
+
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 90)$value,
+  3)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 89)$value,
+  3)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 0)$value,
+  3)
+
+})
+
+
+test_that("intervalaverage, entirely missing interval:",{
+
+  x <- data.table(start=1L,end=10L,value=3)
+  y <- data.table(start=20L,end=30L)
+  expect_equal(
+    intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value,
+    as.numeric(NA)
+  )
+
+  expect_false(
+    is.nan(intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value)
+  )
+
+
+})
 
 
 
