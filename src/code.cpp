@@ -20,7 +20,7 @@ List Cintervalaverage(
   int n_values = values_matrix.ncol();
   int n = start_vector.length();
 
-  List values_list = List::create(2*n_values);
+  List values_list(2*n_values);
 
 
   if(start_vector[0] == NA_INTEGER){
