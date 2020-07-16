@@ -242,6 +242,14 @@ intervalaverage <- function(x,
                             skip_overlap_check=FALSE,
                             verbose=FALSE
 ){
+
+  #due to NSE: to avoid notes in R CMD BUILD
+  intervalaverage__xstart_copy <- intervalaverage__xend_copy <- intervalaverage__xend_copy <-
+    intervalaverage__ystart_copy <-  intervalaverage__yend_copy <-
+    yduration  <- xminstart <- xmaxend <- NULL
+
+
+
   stopifnot(data.table::is.data.table(x))
   stopifnot(data.table::is.data.table(y))
 
