@@ -447,12 +447,6 @@ intervalaverage <- function(x,
     .SDcols=value_vars]
 
 
-
-
-
-
-
-
   #the on nonequi join seems confusing but remember the left side of the corresponds to vars in x
   #and the right side corresponds to vars in y.
     #so this just means take rows meeting both of these conditionds:
@@ -476,8 +470,6 @@ intervalaverage <- function(x,
   #this should probably be an integer
   #but was historically a numeric so leaving this as is for now
 
-
-  stopifnot(q[,all(xduration<=yduration)])
 
   #fix column type of dates since .Internal(pmin) converts to numeric
   if(interval_dates){
