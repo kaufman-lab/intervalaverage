@@ -424,11 +424,12 @@ intervalaverage <- function(x,
       )
 
     },
-    keyby=.EACHI,
+    by=.EACHI,
     on=c(group_vars,
          paste0(interval_vars[2],">=",interval_vars[1]),
          paste0(interval_vars[1],"<=",interval_vars[2])),
     .SDcols=value_vars]
+
 
 
   #the on nonequi join seems confusing but remember the left side of the corresponds to vars in x
@@ -472,6 +473,8 @@ intervalaverage <- function(x,
 
   data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars_names,
                    "xminstart","xmaxend"))
+
+  setkey(q,NULL) #temporary way to get around this bug: https://github.com/Rdatatable/data.table/issues/4603
   setkeyv(q, c(group_vars,interval_vars))
 
 
