@@ -19,11 +19,11 @@ List concatenate_lists(
   return_list.attr("names") = return_list_names;
   for(int i = 0; i < length_a; i++) {
     return_list[i] = a[i];
-    return_list_names[i] = names_a;
+    return_list_names[i] = names_a[i];
   }
   for(int i = 0; i < length_b; i++) {
     return_list[length_b+i] = b[i];
-    return_list_names[length_b+i] = names_b;
+    return_list_names[length_b+i] = names_b[i];
   }
 
   return(return_list);
