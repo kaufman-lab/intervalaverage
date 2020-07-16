@@ -256,12 +256,6 @@ intervalaverage <- function(x,
   statey <- savestate(y)
   on.exit(setstate(y,statey),add=TRUE)
 
-
-
-
-
-
-
   if( any(c("yduration","xduration","xminstart","xmaxend")%in% c(interval_vars,value_vars,group_vars))){
     stop(paste0("column(s) named 'yduration', 'xduration', 'xminstart', or 'xmaxend' has been detected in interval_vars,",
                 " value_vars, or group_vars.         These column names ('yduration', 'xduration', 'xminstart', or 'xmaxend')",
@@ -369,6 +363,11 @@ intervalaverage <- function(x,
    #if you didn't copy them, the resulting joined columns would be *just the values from*
     #but we need the values from intervals in both x and y to calculate durations
 
+  stopifnot(!any(c("intervalaverage__xstart_copy",
+              "intervalaverage__xend_copy")%in% names(x)))
+
+  stopifnot(!any(c("intervalaverage__ystart_copy",
+                   "intervalaverage__yend_copy")%in% names(y)))
 
   x[,`:=`(intervalaverage__xstart_copy=.SD[[1]],
           intervalaverage__xend_copy=.SD[[2]]
@@ -384,28 +383,29 @@ intervalaverage <- function(x,
   q <- x[y[!ydups],
     {
 
-
       l <- Cintervallengths(intervalaverage__xstart_copy,
-                       intervalaverage__xend_copy,
-                       intervalaverage__ystart_copy[1],
-                       intervalaverage__yend_copy[1]
-                       )
+                            intervalaverage__xend_copy,
+                            intervalaverage__ystart_copy[1],
+                            intervalaverage__yend_copy[1]
+      )
 
-      values <- lapply(.SD,function(v){
-        Cweighted_mean(v,l$durations)
-      })
-      setattr(values, "names",value_vars)
 
-      nobs_vars <- lapply(.SD,function(v){
-        sum(as.integer(!is.na(v))*l$durations)
+      values_and_nobs <- lapply(.SD,function(v){
+        Cweighted_mean(v,l$durations) #returns list of length 2
       })
-      setattr(nobs_vars, "names",nobs_vars_names)
+      values_and_nobs <- unlist(values_and_nobs,recursive=FALSE)
+      nms <- character(length=length(value_vars)*2)
+      for(i in 0:(length(value_vars)-1)){
+        nms[2*i+1] <- value_vars[i+1]
+        nms[2*i+2] <- nobs_vars_names[i+1]
+      }
+
+      setattr(values_and_nobs, "names",nms)
 
       #return list: concatenate with values list and nobs_vars list which are prenamed
       c(
         l[c("xduration","xminstart","xmaxend")],
-        values,
-        nobs_vars
+        values_and_nobs
       )
 
     },

@@ -20,7 +20,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // Cweighted_mean
-double Cweighted_mean(NumericVector values, IntegerVector durations);
+List Cweighted_mean(NumericVector values, IntegerVector durations);
 RcppExport SEXP _intervalaverage_Cweighted_mean(SEXP valuesSEXP, SEXP durationsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

@@ -96,8 +96,10 @@ List Cintervallengths(
 }
 
 
+
+
 // [[Rcpp::export]]
-double Cweighted_mean(
+List Cweighted_mean(
     NumericVector values,
     IntegerVector durations
     ){
@@ -114,10 +116,14 @@ double Cweighted_mean(
         sum_durations = sum_durations + durations[i];
       }
     }
-
+  // note that sum_duration is a value-specific version of xduration
+    // that only sums the duration where the value is nonmissing
 
   }
 
-  return sum_product/sum_durations;
+  List L = List::create(Named("average") = sum_product/sum_durations,
+                        Named("nobs_var") = sum_durations
+                        );
+  return L;
 }
 
