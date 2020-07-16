@@ -53,6 +53,8 @@
 #'  or a named character vector where the name is the column name in x and the value is the column name in y.
 #'  This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
 #'  such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
+#' The group_vars character vector cannot be named. This is reserved for future use allowing
+#' different interval_vars column names in x and y.
 #' @param interval_vars_out The column names of the interval columns in the return data.table.
 #' By default the return table will contain columns \code{c("start","end")}.
 #' If your input tables already contain these columns,
@@ -64,7 +66,7 @@
 #' for how naming conflicts are dealt with.
 #' @seealso \code{\link{is.overlapping}} To test if a table contains overlapping intervals within values of \code{group_vars}
 #' @examples
-#'
+#'set.seed(42)
 #'y <- data.table(addr_id=c(1,2,2,3,5),
 #'ppt_id=c(1,1,1,2,2),
 #'addr_start=c(1L,10L,12L,1L,1L),
@@ -125,6 +127,7 @@
 intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
 
+  stopifnot(is.null(names(group_vars)))
 
   x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
   y_interval_vars <- interval_vars

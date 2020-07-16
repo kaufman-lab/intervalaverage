@@ -169,6 +169,8 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #' closed (inclusive) starting and ending intervals. The column name
 #' specifying the lower-bound column must be specified first.
 #' these columns in x and y must all be of the same class and either be integer or IDate.
+#' The interval_vars character vector cannot be named. This is reserved for future use allowing
+#' different interval_vars column names in x and y.
 #' @param value_vars a character vector of column names in `x`. This specifies
 #' the columns to be averaged.
 #' @param group_vars A character vector of column names in both x and y.
@@ -177,6 +179,8 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #' specifying subjects/monitors/locations within which to take averages.
 #' By default this is `NULL`, in which case averages are taken over the entire `x`
 #' dataset for each `y` period.
+#' The group_vars character vector cannot be named. This is reserved for future use allowing
+#' different interval_vars column names in x and y.
 #' @param required_percentage This percentage of the duration of each (possibly group-specific)
 #' `y` interval must be observed
 #' and nonmissing for a specific `value_var` in `x` in order for the return table to
@@ -263,6 +267,10 @@ intervalaverage <- function(x,
   on.exit(setstate(x,statex))
   statey <- savestate(y)
   on.exit(setstate(y,statey),add=TRUE)
+
+
+  stopifnot(is.null(names(interval_vars)))
+  stopifnot(is.null(names(group_vars)))
 
   if( any(c("yduration","xduration","xminstart","xmaxend")%in% c(interval_vars,value_vars,group_vars))){
     stop(paste0("column(s) named 'yduration', 'xduration', 'xminstart', or 'xmaxend' has been detected in interval_vars,",
@@ -742,7 +750,7 @@ interval_weighted_avg_slow_f <- function(x,
 #'  values of \code{group_vars}
 #'
 #' @examples
-#'
+#'set.seed(23)
 #'x2 <- data.table(addr_id=rep(1:4,each=3),
 #'                 exposure_start=rep(c(1L,7L,14L),times=4),
 #'exposure_end=rep(c(7L,14L,21L),times=4),

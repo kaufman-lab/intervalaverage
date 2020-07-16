@@ -1,3 +1,10 @@
+# intervalaverage 0.0.0.9009 (Development)
+
+1. POTENTIALLY BREAKING CHANGE: interval_vars and group_vars arguments cannot have names for the intervalaverage function. This is to allow for a future release where x and y could have differently named interval and/or grouping columns. Additinally, in the intervalintersect function group_vars cannot have names for the same reason. intervalintersect already allows for different interval_vars names in x and y via this exact scheme, so named interval_vars arguments to intervalintersect are obviously still allowed.
+
+2. Turned off some tests when building on CRAN that are likely never going to pass on i386 due to memory issues with the slower non-exported testing/validation function (interval_average_slow_f).
+
+
 # intervalaverage 0.0.0.9008 (Development)
 
 1. Optimized interval average for memory usage.
