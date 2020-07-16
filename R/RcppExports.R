@@ -5,3 +5,7 @@ Cintervallengths <- function(start_vector, end_vector, start_scalar, end_scalar)
     .Call(`_intervalaverage_Cintervallengths`, start_vector, end_vector, start_scalar, end_scalar)
 }
 
+Cweighted_mean <- function(values, durations) {
+    .Call(`_intervalaverage_Cweighted_mean`, values, durations)
+}
+

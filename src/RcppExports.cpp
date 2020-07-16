@@ -19,9 +19,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Cweighted_mean
+double Cweighted_mean(NumericVector values, IntegerVector durations);
+RcppExport SEXP _intervalaverage_Cweighted_mean(SEXP valuesSEXP, SEXP durationsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type durations(durationsSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cweighted_mean(values, durations));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_intervalaverage_Cintervallengths", (DL_FUNC) &_intervalaverage_Cintervallengths, 4},
+    {"_intervalaverage_Cweighted_mean", (DL_FUNC) &_intervalaverage_Cweighted_mean, 2},
     {NULL, NULL, 0}
 };
 

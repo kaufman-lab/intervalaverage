@@ -95,3 +95,29 @@ List Cintervallengths(
   return L;
 }
 
+
+// [[Rcpp::export]]
+double Cweighted_mean(
+    NumericVector values,
+    IntegerVector durations
+    ){
+
+  int n = values.length();
+  double sum_product = 0;
+  int sum_durations = 0;
+
+  //always remove NAs
+  for(int i = 0; i < n; i++){
+    if(!NumericVector::is_na(values[i])){
+      if(durations[i] > 0){
+        sum_product = sum_product + durations[i]*values[i];
+        sum_durations = sum_durations + durations[i];
+      }
+    }
+
+
+  }
+
+  return sum_product/sum_durations;
+}
+

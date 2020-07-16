@@ -384,6 +384,7 @@ intervalaverage <- function(x,
   q <- x[y[!ydups],
     {
 
+
       l <- Cintervallengths(intervalaverage__xstart_copy,
                        intervalaverage__xend_copy,
                        intervalaverage__ystart_copy[1],
@@ -391,7 +392,7 @@ intervalaverage <- function(x,
                        )
 
       values <- lapply(.SD,function(v){
-            weighted.mean(v,l$durations,na.rm=TRUE)
+        Cweighted_mean(v,l$durations)
       })
       setattr(values, "names",value_vars)
 
