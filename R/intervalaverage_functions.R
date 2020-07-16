@@ -384,16 +384,15 @@ intervalaverage <- function(x,
   q <- x[y[!ydups],
     {
 
-
-
-
-      Cintervalaverage(as.matrix(.SD),
+      Cintervalaverage(.SD,
                             intervalaverage__xstart_copy,
                             intervalaverage__xend_copy,
                             intervalaverage__ystart_copy[1],
                             intervalaverage__yend_copy[1],
                             value_names
       )
+
+
 
     },
     by=.EACHI,

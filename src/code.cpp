@@ -5,7 +5,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List Cintervalaverage(
-                 NumericMatrix values_matrix,
+                 List values_list,
                  IntegerVector start_vector,
                  IntegerVector end_vector,
                  int start_scalar,
@@ -19,21 +19,14 @@ List Cintervalaverage(
    //all of this is assumed to have been done in R
     //ie in the intervalaverage function
 
-  int n_values = values_matrix.ncol();
+  int n_values = values_list.size();
   int n = start_vector.length();
 
 
-  List values_list(2*n_values);
-
-  for(int j = 0; j < n_values; j++){
-
-    values_list[2*j] = NA_REAL;
-    values_list[2*j + 1] = 0;
-
-  }
+  List avg_value_and_nobs_list(2*n_values);
 
 
-  values_list.names() = value_names;
+  avg_value_and_nobs_list.names() = value_names;
 
 
   if(start_vector[0] == NA_INTEGER){
@@ -43,9 +36,14 @@ List Cintervalaverage(
                           Named("xminstart") = NA_INTEGER,
                           Named("xmaxend") = NA_INTEGER);
 
+    for(int j = 0; j < n_values; j++){
 
+      avg_value_and_nobs_list[2*j] = NA_REAL;
+      avg_value_and_nobs_list[2*j + 1] = 0;
 
-    return concatenate_lists(L,values_list);
+    }
+
+    return concatenate_lists(L,avg_value_and_nobs_list);
 
   }
 
@@ -82,7 +80,7 @@ List Cintervalaverage(
 
   for(int j = 0; j < n_values; j++){
 
-    NumericVector values = values_matrix( _ , j );
+    NumericVector values = values_list[j];
 
     for(int i = 0; i < n; i++){
 
@@ -113,7 +111,7 @@ List Cintervalaverage(
 
       if(!NumericVector::is_na(values[i] )){
         if(intersectlength[i] > 0){
-          //all elements of values_list assumed to be numeric
+          //all elements of avg_value_and_nobs_list assumed to be numeric
           sum_product[j] = sum_product[j] + intersectlength[i]*values[i];
           sum_durations[j] = sum_durations[j] + intersectlength[i];
         }
@@ -124,8 +122,8 @@ List Cintervalaverage(
 
 
 
-    values_list[2*j] = sum_product[j]/sum_durations[j];
-    values_list[2*j + 1] = sum_durations[j];
+    avg_value_and_nobs_list[2*j] = sum_product[j]/sum_durations[j];
+    avg_value_and_nobs_list[2*j + 1] = sum_durations[j];
 
 
   }
@@ -138,7 +136,7 @@ List Cintervalaverage(
     );
 
 
-  return concatenate_lists(L,values_list);
+  return concatenate_lists(L,avg_value_and_nobs_list);
 }
 
 
