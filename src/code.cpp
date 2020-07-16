@@ -112,7 +112,7 @@ List Cintervalaverage(
     }
 
     values_list[2*j] = sum_product[j]/sum_durations[j];
-    values_list[2*j + 1] = sum_product[j]/sum_durations[j];
+    values_list[2*j + 1] = sum_durations[j];
 
 
   }
