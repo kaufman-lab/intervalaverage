@@ -241,9 +241,6 @@ intervalaverage <- function(x,
                             skip_overlap_check=FALSE,
                             verbose=FALSE
 ){
-  # due to NSE notes in R CMD check:
-  xminstar <- xmaxend <- xduration <- yduration <-
-    interval_end <- interval_start <- dur  <-  NULL
   stopifnot(data.table::is.data.table(x))
   stopifnot(data.table::is.data.table(y))
 
@@ -401,9 +398,7 @@ intervalaverage <- function(x,
       intersect_dur <-  interval_end - interval_start +1L
 
       values <- lapply(.SD,function(v){
-        fifelse(any(!is.na(v)),
-                weighted.mean(v,intersect_dur,na.rm=TRUE),
-                as.numeric(NA))
+            weighted.mean(v,intersect_dur,na.rm=TRUE)
       })
       setattr(values, "names",value_vars)
 
@@ -465,10 +460,15 @@ intervalaverage <- function(x,
   }
 
 
-    #remove averages with too few observations in period
-  #e.g. q[100*nobs_value/yduration < required_percentage, nobs_value:=NA]
+
   for(i in 1:length(value_vars)){
+    #remove averages with too few observations in period
+    #e.g. q[100*nobs_value/yduration < required_percentage, nobs_value:=NA]
     EVAL(paste0("q[100*",nobs_vars_names[i],"/yduration < required_percentage, ", value_vars[i],":=as.numeric(NA)]"))
+
+    #turn NaNs into NAs
+    #NaNs occur when rows of y were not matched at all to x
+    set(q, i=is.nan(q[[value_vars[i]]]),j=value_vars[i],value=as.numeric(NA))
   }
 
   data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars_names,
