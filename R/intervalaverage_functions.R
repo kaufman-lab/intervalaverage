@@ -359,6 +359,51 @@ intervalaverage <- function(x,
 
   xx <- proc.time()
 
+
+  ##coerce date to numeric. doing it once here is faser than a million coercison in the by-loop
+  interval_dates <- "IDate" %in% class(x[[interval_vars[1]]])
+  if(interval_dates){
+    stopifnot(!any(c("intervalaverage__start__original_class_copy",
+                     "intervalaverage__end__original_class_copy")%in% names(x)))
+    stopifnot(!any(c("intervalaverage__start__original_class_copy",
+                     "intervalaverage__end__original_class_copy")%in% names(y)))
+
+    setnames(x,interval_vars,
+             c("intervalaverage__start__original_class_copy",
+               "intervalaverage__end__original_class_copy")
+    )
+    setnames(y,interval_vars,
+             c("intervalaverage__start__original_class_copy",
+               "intervalaverage__end__original_class_copy")
+    )
+
+    x[, (interval_vars):=lapply(.SD,as.integer),
+      .SDcols=c("intervalaverage__start__original_class_copy",
+                "intervalaverage__end__original_class_copy")]
+    y[, (interval_vars):=lapply(.SD,as.integer),
+      .SDcols=c("intervalaverage__start__original_class_copy",
+                "intervalaverage__end__original_class_copy")]
+
+    ##set the columns back as they were
+    on.exit({
+      x[, (interval_vars):=NULL]
+      y[, (interval_vars):=NULL]
+
+      setnames(x, c("intervalaverage__start__original_class_copy",
+                    "intervalaverage__end__original_class_copy"),
+               interval_vars
+      )
+      setnames(y,c("intervalaverage__start__original_class_copy",
+                   "intervalaverage__end__original_class_copy"),
+               interval_vars,
+      )
+
+
+    }, add=TRUE, after=FALSE)
+
+  }
+
+
   #copy the interval columns so they get carried over to the result
    #if you didn't copy them, the resulting joined columns would be *just the values from*
     #but we need the values from intervals in both x and y to calculate durations
@@ -403,6 +448,11 @@ intervalaverage <- function(x,
 
 
 
+
+
+
+
+
   #the on nonequi join seems confusing but remember the left side of the corresponds to vars in x
   #and the right side corresponds to vars in y.
     #so this just means take rows meeting both of these conditionds:
@@ -430,9 +480,10 @@ intervalaverage <- function(x,
   stopifnot(q[,all(xduration<=yduration)])
 
   #fix column type of dates since .Internal(pmin) converts to numeric
-  if(any(class(x[[interval_vars[1]]])%in%c("IDate"))){
+  if(interval_dates){
     q[, xminstart:=as.IDate(xminstart,origin="1970-01-01")]
     q[, xmaxend:=as.IDate(xmaxend,origin="1970-01-01")]
+    q[, (interval_vars):=lapply(.SD,as.IDate),.SDcols=interval_vars]
   }
 
 
