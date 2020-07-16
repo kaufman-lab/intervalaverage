@@ -244,6 +244,42 @@ test_that("intervalaveraging restores state even when it throws an error", {
 
 })
 
+test_that("intervalaverage only partially observed schedule and missingness:",{
+
+  x <- data.table(start=1L,end=9L,value=3)
+  y <- data.table(start=1L,end=10L)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value,
+  as.numeric(NA))
+
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 90)$value,
+  3)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 89)$value,
+  3)
+expect_equal(
+  intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value",required_percentage = 0)$value,
+  3)
+
+})
+
+
+test_that("intervalaverage, entirely missing interval:",{
+
+  x <- data.table(start=1L,end=10L,value=3)
+  y <- data.table(start=20L,end=30L)
+  expect_equal(
+    intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value,
+    as.numeric(NA)
+  )
+
+  expect_false(
+    is.nan(intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value)
+  )
+
+
+})
 
 
 
@@ -683,6 +719,7 @@ test_that("intervalaveraging", {
   ##here I want to test to make sure that when there are overlapping intervals in y, it still returns y to its original state
   #but in order to test this, I can't wrap in expect_warning
 
+  options(warn=-1)
   bleh <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
                           value_vars=c("value1","value2"),
                           group_vars=c("id1","id2"),
@@ -690,6 +727,7 @@ test_that("intervalaveraging", {
 
 
   expect_false("rowindex" %in% names(b))
+  options(warn=0)
 
 
   expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),

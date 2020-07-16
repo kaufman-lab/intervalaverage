@@ -1,6 +1,6 @@
 Package: intervalaverage
 Title: Time-Weighted Averaging for Interval Data
-Version: 0.0.0.9007
+Version: 0.0.0.9008
 Authors@R: 
     person(given = "Michael",
            family = "Young",
@@ -28,3 +28,7 @@ Suggests:
     rmarkdown,
     testthat
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp
+Imports: 
+    Rcpp

@@ -29,76 +29,58 @@ the same length (e.g. the value of `8` measured over the interval `[3,5]` become
 the value of 8 measured over `[3,3]` and `[4,4]` and `[5,5]`) but this is incredibly
 memory intensive.  Instead a weighting approach is necessary. 
 
-I was not able to find a package which accomplished this task, much less
-a package which accomplished it quickly and with minimal memory overhead.
+I was not able to find a package which accomplished this exact task (although there probably is one somewhere), much less
+a package which accomplished it quickly and with minimal memory overhead.  Since these package was desgined to replace SQL database procedures the priorities were correctness, memory efficiency, and speed in that order. But given the amount of effort put into optimizing this, it's almost exactly as fast as a less memory efficient version.
+
+## Integer vs numeric intervals
+I made the intentional choice to disallow numeric intervals. Restricting intervals to integer types (integer or class IDate) allowed me to avoid having to forsee issues that would arise with numeric intervals. If you're dealing with continuous data and would like to use this package, just discretize the data to your desired amount of precision convert to those discrete periods to integers.
+
+
+## This vignette
+The remainder of this vignette describes some of the decision-making behind how the intervalaverage function was written and may not be interesting or useful to a general purpose audience.
+
 
 
 ## A brief description of the intervalaverage algorithm (with a focus on explaining why seemingly convoluted choices were made in the function body)
 
 The `intervalaverage` function starts by merging periods in y to periods in x by
- interval variables and possible grouping variables using foverlaps. 
+ interval variables and possible grouping variables using a non-equijoin. 
 Technically speaking `intervalaverage(x,y, interval_vars,group_vars)`
 performs a right join on group_vars and non-equi joining (for partial overlaps)
-on interval_vars. The function then calculates the length of each joined interval
-intersection (this is defined as the dur column in the function body).
-  The average value of the value_vars is calculated over each interval
-in y as `sum(value_vars*dur)/sum(temp_nobs_vars)`. For example,
-to calculate the weighted average of a value over 
-an interval of length 4 where a value of 8 was observed for 3 days and a value of
-2 was observed for 1 day, we could take `8*3/4 + 2*1/4` or `(1/4)*(8*3+2*1)`.
+on interval_vars. If intervals from x have start and end points [a,b] and intervals from y have start and end points [c,d], the non-equi join for partial overlaps requires that b>=c & a <= d. 
 
-The `intervalaverage` uses the latter equation due to the fact that data.table's 
-group by arithmatic is highly optimized but only for specific calls.
-data.table's gforce  efficeintly does group-by operations directly in C rather 
-than in R. Since data.table's ability to detect an optimized group-by function 
-call is limited, using gforce for an abritrary number of value_vars columns
-requires use of some nonstandard evaluation. In this context, 
-the non-standard evaluation is constructing a data.table call (ie a "macro")
- via paste and calling it with `eval(parse(text=<>))` (which has been defined 
- as the `EVAL` function as an alias to avoid writing that multiple times). 
+That resulting operation returns a joined table with two sets of intervals. Those two sets of intervals can then be intersected (ie: [max(a,b), min(c,d) ]) to identify the period of overlap.  The length of this period of overlap (min(c,d)-max(a,b)+1 ) is important in that it determines the weight that the corresponding value from x will have when trying to average that value into the interval from y ([c,d]).
 
-An additional consideration is that since the function is written to accept 
-data.tables with arbitrary columns, and in the joined data.table z there could 
-be naming conflicts between user-supplied columns and constructed columns, all 
-user-supplied columns are renamed to placeholder names until the end of the 
-function. This avoids potential issues with naming conflicts with *temporary*
- internal columns that are not included in the output. However, output columns
- (`xduration`, `yduration`, `xminstart`, `xmaxend`) are reserved column names and can't
- exist as columns that need to end up in z (specifically, they can't be in group_vars, 
- interval_vars, or value_vars).  Since only `group_vars`,`interval_vars`, and `value_vars`
- go into the `foverlaps` merge, columns named `xduration`, `yduration`, `xminstart`, and
- `xmaxend` are allowed to be other columns of `x` or `y` as long as they're not `group_vars`,
- `value_vars`, or `interval_vars`.
 
-## Memory usage: why it's not as good as it could be and how that might be fixable
+This is all done directly in C++ because this code needs to have very little overhead for a specific reason: namely that the non-equijoin is repeatedly calling the average for each group in by=.EACHI. Previously the function generated the entire intermediate table and operations (such as taking products to calculate the weighted mean) could be done once on the entire vectors in the intermediate table, but to save memory I'm using the .EACHI technique which doesn't ever allocate the intermediate table (at least not all at once).
+Using this .EACHI approach makes the function highly memory efficient (basically the only things allocated other than the inputs is a table of the resulting join subsetted to the largest group. This memory is then reused for each group. This is data.table's optimization, not mine, but at the time of writing it is not well documented.) 
 
-Memory: 
-The headline here is that if you run into memory issues you can always 
-do a for loop iterating over group vars. There's an example of this at the end of 
-the corresponding unit test .R file.
+Before describing the C++ code which does the above operation, I'll mention that there is one other memory optimization I implemented: extrem care was taken to avoid copying x or y. This was challenging since x and y needed to be modified in various ways prior to the join, but this is all addressed via adding columns and/or possibly reordering (for an error check)--all of this is reversed on function exit. I don't know much about situations where multiple parallel R processes are sharing the same object at the same time, but if that's something you want to do you'll definitely need to copy the objects first or else who knows what will happen. Note when I say "multiple parallel R processes sharing the same object at the same time" I'm not referring to standard parallelization approaches like those used in libarary(parallel) or on a cluster becasue I'm almost certain those always make copies when forking.
 
-In greater detail: 
-This function unfortunately does create a large allocation 
-(the intermediate joined table `z`). Ideally the function would be written to avoid
- this large allocation by doing an immediate `by=.EACHI` 
- (using an `x[y]` non-equi join instead of `foverlaps`).
- 
- Unfortunately I've tested this approach and while it avoids the large memory allocation, 
- it's much slower due to pmin/pmax (which are used to calculate interval intersects)
- needing to be calculated within groups defined by `.EACHI`.
- If foverlaps directly produced the equivalents of the `interval_start`/`interval_end`
- variables (ie the interval intersects),
- and if `foverlaps` supported immediate group-by operations (similar to `by=.EACHI`)
- then this function could be
- memory-efficient and relatively fast. That approach might still be slower than 
- the current approach since GFORCE isn't supported for by-without-by/.EACHI joins.
- Conceptually by-without-by creates each group and immediately summarizes that group
- before iterating to the next group. This saves memory because it never allocates
- the whole table, but may not be as well optimized as the GFORCE group-by operations.
- 
- Still, there might be an eventual possibility
- for trading some speed for avoing the large memory allocation if `foverlaps` calculates
- intersect lengths.
+In any case, the C code:
+
+The C++ code takes the following inputs: 
+- a list of values
+- a vector of start integers from x
+- a vector of end integers from x
+- a scalar--start integer from y
+- a scalar--end integer from y
+- a colated vector of desired names in this form: `c("valuevar1","nobs_valuevar1","valuevar2","nobs_valuevar2"...etc)` which will determine the names of those columns in the return list of the C function. I probably could have generated this in C but I was having trouble figuring out text string manipuation.
+
+The return is list contains precomputed columns (xduration, values, nobs_values, and xminstart/xmaxend) as described in the help.
+
+The C code is specifically designed to work with the conditions generated by the non-equi join and should not be generalized to other situations without major modification. Namely, because of the .EACHI grouping, there is one set  of y intervals and possibly multiple xintervals (hence the scalar for y/vector for x).
+Additionally, all intervals are assumed to be non-missing with the exception of a special case: if any intervals in x are missing, they're all assummed to be missing and this only results when the .EACHI group does not contain ANY matching rows from x--ie, the set of join conditions resulted in no match. data.table will automatically generated a single row with missings for the x variables. This is detected simply through the presence of a missingness in the vector of start integers. The correct output for this situation is generated manually (xminstart/xmaxend and the average values are returned NA but xduration is returned as 0).
+
+If nonmissing, the function proceeds to loop through each value variable provided as the outer loop (indexed by j). Each j loop returns two variables corresponding to the value variable: the *nonmissing* (ie ommitting NAs) average value as well as the number of observations that the value variable had which contributed to the average. This is less than or equal to xduration (equal to if that value variable has no missings).  Additionally, when j=0 (ie on the first iteration),
+interval information--ie the length of the intersect as well as xminstart/xmaxend-- is determined (these are necessary to calculate the weights for the average so this happens first in the loop).
+
+
+This optimization and the abstractions which allow intervalaverage to be called flexibly for arbitrary groups and number of values variables make the intervalaverage function fairly intricate. This intricacy  (read: potential for bugs) is partially addressed by the large number of error checks specified at the top of the R function body. (there are no error checks in the C code as this would slow down the R function since the C code is called repeatedly). Potential for bugs is further addressed by the fact that I rewrote a slower but simpler version of the averaging function using a different algorithm. The "unit tests" are more than just unit tests--they're a series of datasets passed through both functions. Both functions return exactly identical results in all cases or the checks fail so I can say with high certainty that despite the level of abstraction involved that this function works as intended at least in the use-cases that I've forseen.  With that said, if you encounter a bug please let me know and I will patch it.
+
+
+
+
  
  
  

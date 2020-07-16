@@ -1,5 +1,6 @@
-
-
+#' @useDynLib intervalaverage, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
+NULL
 
 
 create_unused_name <- function(x,reserved_cols){
@@ -241,34 +242,27 @@ intervalaverage <- function(x,
                             skip_overlap_check=FALSE,
                             verbose=FALSE
 ){
-  # due to NSE notes in R CMD check:
-  xminstar <- xmaxend <- xduration <- yduration <-
-    interval_end <- interval_start <- dur  <-  NULL
+
+  #due to NSE: to avoid notes in R CMD BUILD
+  intervalaverage__xstart_copy <- intervalaverage__xend_copy <- intervalaverage__xend_copy <-
+    intervalaverage__ystart_copy <-  intervalaverage__yend_copy <-
+    yduration  <- xminstart <- xmaxend <- NULL
+
+
+
   stopifnot(data.table::is.data.table(x))
   stopifnot(data.table::is.data.table(y))
 
 
   EVAL <- function(...)eval(parse(text=paste0(...)))
 
-  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
-  is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
 
-  if(is_not_preferred_keyx){
-    statex <- savestate(x)
-    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
-    on.exit(setstate(x,statex))
-  }
-
-  if(is_not_preferred_keyy){
-    statey <- savestate(y)
-    if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalaverage is recommended to save unnecessary row reordering")}
-    on.exit(setstate(y,statey),add=TRUE)
-  }
-
-
-  data.table::setkeyv(x,c(group_vars,interval_vars))
-  data.table::setkeyv(y,c(group_vars,interval_vars))
-
+  #save states so that added columns are dropped.
+  #x also may be reordered due to the overlap check. this will restore the order
+  statex <- savestate(x)
+  on.exit(setstate(x,statex))
+  statey <- savestate(y)
+  on.exit(setstate(y,statey),add=TRUE)
 
   if( any(c("yduration","xduration","xminstart","xmaxend")%in% c(interval_vars,value_vars,group_vars))){
     stop(paste0("column(s) named 'yduration', 'xduration', 'xminstart', or 'xmaxend' has been detected in interval_vars,",
@@ -354,16 +348,14 @@ intervalaverage <- function(x,
     warning("sum(duplicated(y[,c(group_vars,interval_vars),with=FALSE]))!=0 is not TRUE.
          there are replicate/duplicate intervals within groups of y.
          removing these duplicated rows automatically")
-    yytemp <- y[!ydups]
-    if(is_not_preferred_keyy){
-      setstate(y,statey) #return original passed-by-ref object to its original state
-    }
-    y <- yytemp
+  }else{
+    ydups <- FALSE
   }
 
   if(!skip_overlap_check){
 
     #stop if there are overlapping periods within groups:
+    data.table::setkeyv(x,c(group_vars,interval_vars))
     stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
     if(verbose){print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))}
   }else{
@@ -375,166 +367,142 @@ intervalaverage <- function(x,
 
   xx <- proc.time()
 
-  #in order to guarantee that there aren't column name conflicts
-     #between the temporary variables such as interval_start
-    #and the user-provided column names such as group_vars, value_vars, interval_vars
-  #create temporary names for user-provided variables
-  gvars <- if(!is.null(group_vars)){paste0("g",1:length(group_vars))}else{NULL}
-  vvars <- paste0("v",1:length(value_vars))
-  ivars <- paste0("i",1:2)
-  i.ivars <- paste0("i.",ivars)
 
-  #subset x and y to only variables subsequently.
-   #this avoids  naming conflicts with extraneous
-    #variables which don't need to be part of the join.
-  z <- data.table::foverlaps(x=y[,c(group_vars,interval_vars),with=FALSE],
-                 y=x[,c(group_vars,interval_vars,value_vars),with=FALSE])
-  #i.ivars are from x=y, ivars are from y=x
-    #note that in the return data.table of foverlaps,
-      #any columns in either x or y (including interval_vars)
-      #end up in the return of foverlaps
-    # address naming conflicts, foverlaps prepends "i." to any columns from x
-      #since I'm specifying foverlaps(x=y,y=x)
-      #this means that columns prepended from "i." are from y
-    #(e.g., the y in the current calling scope of intervalvars)
+  ##coerce date to numeric. doing it once here is faser than a million coercison in the by-loop
+  interval_dates <- "IDate" %in% class(x[[interval_vars[1]]])
+  if(interval_dates){
+    stopifnot(!any(c("intervalaverage__start__original_class_copy",
+                     "intervalaverage__end__original_class_copy")%in% names(x)))
+    stopifnot(!any(c("intervalaverage__start__original_class_copy",
+                     "intervalaverage__end__original_class_copy")%in% names(y)))
 
- ##rename all user-supplied columns to the column names pre-specified above.
-  #this avoids naming conflicts with temp variables
-   #such as interval_end, interval_start, dur, and the other temporary variables
-  #columns will be renamed back to their original names at the end of the function
-  data.table::setnames(z,
-           c(group_vars,interval_vars,paste0("i.",interval_vars),value_vars),
-           c(gvars,ivars,i.ivars,vvars)
-  )
+    setnames(x,interval_vars,
+             c("intervalaverage__start__original_class_copy",
+               "intervalaverage__end__original_class_copy")
+    )
+    setnames(y,interval_vars,
+             c("intervalaverage__start__original_class_copy",
+               "intervalaverage__end__original_class_copy")
+    )
 
+    x[, (interval_vars):=lapply(.SD,as.integer),
+      .SDcols=c("intervalaverage__start__original_class_copy",
+                "intervalaverage__end__original_class_copy")]
+    y[, (interval_vars):=lapply(.SD,as.integer),
+      .SDcols=c("intervalaverage__start__original_class_copy",
+                "intervalaverage__end__original_class_copy")]
 
-  if(verbose){
-    print("data.table::foverlaps duration:")
-    print(proc.time()-xx)
-    xx <- proc.time()
-  }
+    ##set the columns back as they were
+    on.exit({
+      x[, (interval_vars):=NULL]
+      y[, (interval_vars):=NULL]
 
-  #interval_start and interval_end together
-    #define the interval intersects of the joined intervals
-  EVAL(paste0("z[,interval_end:=pmin(",i.ivars[2],", ",ivars[2],")]"))
-  EVAL(paste0("z[,interval_start:=pmax(",i.ivars[1],",",ivars[1],")] "))
-
-  if(verbose){
-    print("pmin/pmax duration:")
-    print(proc.time()-xx)
-    xx <- proc.time()
-  }
-
-
-  #dur is the length of each interval intersect
-  z[,dur := as.integer(interval_end-interval_start+1L)]
-
-  #temp_nobs_vars is a vector of column names
-   #each column is the count of nonmissing observations for
-    #its corresponding value_var column
-   #count column is  0 when the value_var is missing in that row
-   #and equal to the dur column otherwise.
-   #calculated as !is.na(value_var)*dur
-  temp_nobs_vars <- paste0("vnm",1:length(value_vars))
-   for(i in 1:length(vvars)){
-      data.table::set(z,
-          j=temp_nobs_vars[i],
-          value=as.integer(!is.na(z[[vvars[i]]]))*z[["dur"]]
+      setnames(x, c("intervalaverage__start__original_class_copy",
+                    "intervalaverage__end__original_class_copy"),
+               interval_vars
       )
-   }
-
- #take the product between the value variable and interval intersect length
-    #this is the first step in calculating the weighted average
-  #note that I could just as use the variable-specific temp_nobs_vars
-     #instead of dur as the numerator product weight here
-  #but by definition, the variable-specific temp_nobs_vars are only different from dur
-    #when value_vars is missing for that row.
-  prod_vars <- paste0("p",1:length(value_vars))
-  for(i in 1:length(vvars)){
-    data.table::set(z,
-        j=prod_vars[i],
-        value=z[[vvars[i]]]*z[["dur"]]
-    )
-  }
-
-  if(verbose){
-    print("pre-grouping var calculation:")
-    print(proc.time()-xx)
-    xx <- proc.time()
-  }
-
-  #generate a set of column names following the form
-    #nobs_<value_var>
-   #each nobs_<value_var> column will be the count of non-missing observations
-    #of that value variable in that time-period in y
-  nobs_vars <- paste("nobs",value_vars, sep="_")
-  sumprod_vars <- paste("sumproduct",value_vars, sep="_")
+      setnames(y,c("intervalaverage__start__original_class_copy",
+                   "intervalaverage__end__original_class_copy"),
+               interval_vars,
+      )
 
 
-  ##next, construct calculate the sum of the products (sumprod_vars)
-    #as well as sums for nobs_vars and min/max for xminstart/xmaxend.
+    }, add=TRUE, after=FALSE)
 
-  ###optimization note:
-    #gforce data.table statement: sum, min, max are optimized for use in by statement.
-      #but syntactically this is limited.
-        # x[, list(sumprod=sum(x*y)),by=z] is NOT optimized by data.table GForce
-        # instead, I've done:
-        # x[, xy:=x*y]
-        # x[, list(sumprod=sum(xyy)),by=z] this IS optimized by GForce
-        # note that weighted mean isn't directly calculated in the by
-        # because a complex formula that data.table gforce isn't capable of (yet)
-
-
-  q <- EVAL(
-    paste0(
-      "z[,list(",
-      "xduration=sum(dur)",
-      ",",
-      paste0(nobs_vars,"=sum(",temp_nobs_vars,",na.rm=TRUE)",collapse=","),
-      ",",
-      paste0(sumprod_vars,"=sum(",prod_vars,",na.rm=TRUE)",collapse=","),
-      ",",
-      "xminstart=min(interval_start),",
-      "xmaxend=max(interval_end)",
-      "),",
-      "keyby=c(gvars,i.ivars)]"
-    )
-  )
-
-  if(verbose){
-    print("gforce:")
-    print(proc.time()-xx)
-    xx <- proc.time()
   }
 
 
+  #copy the interval columns so they get carried over to the result
+   #if you didn't copy them, the resulting joined columns would be *just the values from*
+    #but we need the values from intervals in both x and y to calculate durations
 
-  #calculate the mean as value_vars=sum(value_vars*dur)/sum(temp_nobs_vars)
-     #where the sums are over by group_vars and interval_vars
-      #and have already been calculated and stored as columns when creating q
-  #the final step is just to calculate the ratio:
-  EVAL(paste0("q[,`:=`(",paste0(value_vars,"=",sumprod_vars,"/",nobs_vars,collapse=","),")]"))
+  stopifnot(!any(c("intervalaverage__xstart_copy",
+              "intervalaverage__xend_copy")%in% names(x)))
 
-  #remove temporary column sum_prod_vars
-  EVAL(paste0("q[,`:=`(",paste0(sumprod_vars,"=NULL",collapse=","),")]"))
+  stopifnot(!any(c("intervalaverage__ystart_copy",
+                   "intervalaverage__yend_copy")%in% names(y)))
+
+  x[,`:=`(intervalaverage__xstart_copy=.SD[[1]],
+          intervalaverage__xend_copy=.SD[[2]]
+          ),.SDcols=interval_vars]
+
+  y[,`:=`(intervalaverage__ystart_copy=.SD[[1]],
+          intervalaverage__yend_copy=.SD[[2]]
+          ),.SDcols=interval_vars]
+
+  #these copies will be deleted on function exit thanks to the on.exit state restore calls
+
+  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_"),x)))
+  nobs_vars_names <- paste0("nobs_",value_vars)
+  q <- x[y[!ydups],
+    {
+
+      Cintervalaverage(.SD,
+                            intervalaverage__xstart_copy,
+                            intervalaverage__xend_copy,
+                            intervalaverage__ystart_copy[1],
+                            intervalaverage__yend_copy[1],
+                            value_names
+      )
+
+
+
+    },
+    by=.EACHI,
+    on=c(group_vars,
+         paste0(interval_vars[2],">=",interval_vars[1]),
+         paste0(interval_vars[1],"<=",interval_vars[2])),
+    .SDcols=value_vars]
+
+
+  #the on nonequi join seems confusing but remember the left side of the corresponds to vars in x
+  #and the right side corresponds to vars in y.
+    #so this just means take rows meeting both of these conditionds:
+      #-the x end is greater than the y start AND
+      #-the x start is less than or equal to the y end
+    #which just translates to a partial overlap join
+    #in addition to matching on groups_vars
+
+    #to x and the right sid
+
+  ###confusingly the returned non-equi join columns are the names from x but the values from y
+  #because of this inequality statement
+    #comparing interval_vars[2] with interval_val[1] and vice versa
+  #the names get switched. switch them back:
+
+  setnames(q, interval_vars, rev(interval_vars))
 
   #count length of each interval,
   #this will be used to count percentage of observed time x has in intervals of y
-  q[,yduration:=as.numeric( .SD[[2]]-.SD[[1]] + 1),.SDcols=c(i.ivars)]
+  q[,yduration:=as.numeric( .SD[[2]]-.SD[[1]] + 1),.SDcols=c(interval_vars)]
+  #this should probably be an integer
+  #but was historically a numeric so leaving this as is for now
 
-  q[is.na(xduration), c("xduration",nobs_vars):=0]
-  stopifnot(q[,all(xduration<=yduration)])
 
-    #remove averages with too few observations in period
-  #e.g. q[100*nobs_value/yduration < required_percentage, nobs_value:=NA]
-  for(i in 1:length(value_vars)){
-    EVAL(paste0("q[100*",nobs_vars[i],"/yduration < required_percentage, ", value_vars[i],":=as.numeric(NA)]"))
+  #fix column type of dates since .Internal(pmin) converts to numeric
+  if(interval_dates){
+    q[, xminstart:=as.IDate(xminstart,origin="1970-01-01")]
+    q[, xmaxend:=as.IDate(xmaxend,origin="1970-01-01")]
+    q[, (interval_vars):=lapply(.SD,as.IDate),.SDcols=interval_vars]
   }
 
-  data.table::setnames(q, c(i.ivars,gvars),c(interval_vars,group_vars))
-  data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars,
+
+
+  for(i in 1:length(value_vars)){
+    #remove averages with too few observations in period
+    #e.g. q[100*nobs_value/yduration < required_percentage, nobs_value:=NA]
+    EVAL(paste0("q[100*",nobs_vars_names[i],"/yduration < required_percentage, ", value_vars[i],":=as.numeric(NA)]"))
+
+    #turn NaNs into NAs
+    #NaNs occur when rows of y were not matched at all to x
+    set(q, i=which(is.nan(q[[value_vars[i]]])),j=value_vars[i],value=as.numeric(NA))
+  }
+
+  data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars_names,
                    "xminstart","xmaxend"))
 
+  setkey(q,NULL) #temporary way to get around this bug: https://github.com/Rdatatable/data.table/issues/4603
+  setkeyv(q, c(group_vars,interval_vars))
 
 
   if(verbose){
