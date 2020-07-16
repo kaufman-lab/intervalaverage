@@ -1,3 +1,11 @@
+#this used to compare performance of various methods but since optimizing this makes
+ #less sense to be a test
+#keeping this in since it's a nice example of the different approaches to intervalaveraging
+ #using data.table
+#and also is a simple reproducible example of how the averaging works,
+#separated from all the abstraction in the function
+#plus it acts as unit test for the data.table package around the specific operations I'm doing.
+
 test_that("performance", {
   skip_on_cran()
 
@@ -128,29 +136,6 @@ test_that("performance", {
   expect_equal(out0,out1)
   expect_equal(out1,out2a)
   expect_equal(out2a,out2b)
-
-
-  time0
-  time1
-  time2a
-  time2b
-  time_package_approach
-
-  #the package uses approach1 (out1, time1)
-  #actually calling the package function should be expected to be slower
-   #than the raw method because the package does other calculations and checks
-
-  #however, the package approach (ie approach1) should be faster than the other approaches
-   #if this isn't true, there's either a regression in data.table performance for the given approach
-   #or the alternative approach has been optimized in data.table and intervalaverage should be rewritten to reflect that
-
-  expect_true(which.min(c(time0[3],time1[3],time2a[3],time2b[3]))==2)
-
-
-
-
-
-
 
 
 

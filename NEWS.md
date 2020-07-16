@@ -1,3 +1,8 @@
+# intervalaverage 0.0.0.9008 (Development)
+
+1. Optimized interval average for memory usage.
+
+
 # intervalaverage 0.0.0.9007 (Development)
 
 1. Performance check is no longer tested on cran.
