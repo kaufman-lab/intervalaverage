@@ -382,8 +382,10 @@ intervalaverage <- function(x,
   nobs_vars_names <- paste0("nobs_",value_vars)
   q <- x[y[!ydups],
     {
+      browser()
 
-      l <- Cintervallengths(intervalaverage__xstart_copy,
+      l <- Cintervalaverage(as.matrix(.SD),
+                            intervalaverage__xstart_copy,
                             intervalaverage__xend_copy,
                             intervalaverage__ystart_copy[1],
                             intervalaverage__yend_copy[1]

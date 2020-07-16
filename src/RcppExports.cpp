@@ -5,36 +5,24 @@
 
 using namespace Rcpp;
 
-// Cintervallengths
-List Cintervallengths(IntegerVector start_vector, IntegerVector end_vector, int start_scalar, int end_scalar);
-RcppExport SEXP _intervalaverage_Cintervallengths(SEXP start_vectorSEXP, SEXP end_vectorSEXP, SEXP start_scalarSEXP, SEXP end_scalarSEXP) {
+// Cintervalaverage
+List Cintervalaverage(NumericMatrix values_matrix, IntegerVector start_vector, IntegerVector end_vector, int start_scalar, int end_scalar);
+RcppExport SEXP _intervalaverage_Cintervalaverage(SEXP values_matrixSEXP, SEXP start_vectorSEXP, SEXP end_vectorSEXP, SEXP start_scalarSEXP, SEXP end_scalarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type values_matrix(values_matrixSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type start_vector(start_vectorSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type end_vector(end_vectorSEXP);
     Rcpp::traits::input_parameter< int >::type start_scalar(start_scalarSEXP);
     Rcpp::traits::input_parameter< int >::type end_scalar(end_scalarSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cintervallengths(start_vector, end_vector, start_scalar, end_scalar));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Cweighted_mean
-List Cweighted_mean(NumericVector values, IntegerVector durations);
-RcppExport SEXP _intervalaverage_Cweighted_mean(SEXP valuesSEXP, SEXP durationsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type values(valuesSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type durations(durationsSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cweighted_mean(values, durations));
+    rcpp_result_gen = Rcpp::wrap(Cintervalaverage(values_matrix, start_vector, end_vector, start_scalar, end_scalar));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_intervalaverage_Cintervallengths", (DL_FUNC) &_intervalaverage_Cintervallengths, 4},
-    {"_intervalaverage_Cweighted_mean", (DL_FUNC) &_intervalaverage_Cweighted_mean, 2},
+    {"_intervalaverage_Cintervalaverage", (DL_FUNC) &_intervalaverage_Cintervalaverage, 5},
     {NULL, NULL, 0}
 };
 
