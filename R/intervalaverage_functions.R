@@ -1,5 +1,6 @@
-
-
+#' @useDynLib intervalaverage, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
+NULL
 
 
 create_unused_name <- function(x,reserved_cols){
@@ -383,37 +384,25 @@ intervalaverage <- function(x,
   q <- x[y[!ydups],
     {
 
-      #calculate the start and end of the intersect
-      #the intervals are always non-missing due to the error checks
-      #if NAs occur in the interval values here, it's because they've been generated as NA
-        #for a combination of .BY variable conditions that don't exist in x.
-      interval_start <- .Internal(pmax(na.rm=FALSE, intervalaverage__xstart_copy,intervalaverage__ystart_copy[1]))
-      interval_end <- .Internal(pmin(na.rm=FALSE, intervalaverage__xend_copy,intervalaverage__yend_copy[1]))
-
-      #(note that all(yend2[1]==yend2)
-      #is TRUE because the .EACHI groups by y intervals)
-      #this is why all the y intervals are indexed to extract the first element
-
-      #calculate the duration of the intersects:
-      intersect_dur <-  interval_end - interval_start +1L
+      l <- Cintervallengths(intervalaverage__xstart_copy,
+                       intervalaverage__xend_copy,
+                       intervalaverage__ystart_copy[1],
+                       intervalaverage__yend_copy[1]
+                       )
 
       values <- lapply(.SD,function(v){
-            weighted.mean(v,intersect_dur,na.rm=TRUE)
+            weighted.mean(v,l$durations,na.rm=TRUE)
       })
       setattr(values, "names",value_vars)
 
       nobs_vars <- lapply(.SD,function(v){
-        sum(as.integer(!is.na(v))*intersect_dur)
+        sum(as.integer(!is.na(v))*l$durations)
       })
       setattr(nobs_vars, "names",nobs_vars_names)
 
       #return list: concatenate with values list and nobs_vars list which are prenamed
       c(
-        list(
-             xduration=sum(intersect_dur),
-             xminstart=min(interval_start),
-             xmaxend=max(interval_end)
-        ),
+        l[c("xduration","xminstart","xmaxend")],
         values,
         nobs_vars
       )
@@ -424,6 +413,7 @@ intervalaverage <- function(x,
          paste0(interval_vars[2],">=",interval_vars[1]),
          paste0(interval_vars[1],"<=",interval_vars[2])),
     .SDcols=value_vars]
+
 
 
 
@@ -468,7 +458,7 @@ intervalaverage <- function(x,
 
     #turn NaNs into NAs
     #NaNs occur when rows of y were not matched at all to x
-    set(q, i=is.nan(q[[value_vars[i]]]),j=value_vars[i],value=as.numeric(NA))
+    set(q, i=which(is.nan(q[[value_vars[i]]])),j=value_vars[i],value=as.numeric(NA))
   }
 
   data.table::setcolorder(q, c(group_vars,interval_vars,value_vars,"yduration","xduration",nobs_vars_names,
