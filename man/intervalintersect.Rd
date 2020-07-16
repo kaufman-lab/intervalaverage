@@ -28,7 +28,9 @@ these columns in x and y must all be of the same class and either be integer or 
 \item{group_vars}{NULL, or either a character vector denoting the column name(s) in x and y,
 or a named character vector where the name is the column name in x and the value is the column name in y.
 This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
-such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.}
+such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
+The group_vars character vector cannot be named. This is reserved for future use allowing
+different interval_vars column names in x and y.}
 
 \item{interval_vars_out}{The column names of the interval columns in the return data.table.
 By default the return table will contain columns \code{c("start","end")}.
@@ -83,7 +85,7 @@ this function is basically just a wrapper for the following code:\cr \cr
 \code{<see source code>}
 }
 \examples{
-
+set.seed(42)
 y <- data.table(addr_id=c(1,2,2,3,5),
 ppt_id=c(1,1,1,2,2),
 addr_start=c(1L,10L,12L,1L,1L),

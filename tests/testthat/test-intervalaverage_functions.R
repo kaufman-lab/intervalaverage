@@ -162,7 +162,7 @@ test_that("CJ.dt", {
 })
 
 
-
+#### intervalaverage state restoration ####
 test_that("intervalaveraging restores state", {
   #averaging intervals longer than observed period
   set.seed(72)
@@ -178,7 +178,7 @@ test_that("intervalaveraging restores state", {
                         end_date=as.IDate(paste0(1999:2017,"-12-31")))
   b0 <- CJ.dt(b0_temp, unique(a0[,list(id1,id2)]) )
 
-  ###two groups in x,two values####
+  #two groups in x,two values
   a0[,neworder:=sample(1:.N)]
   setkey(a0,"neworder")
   a0_original <- copy(a0)
@@ -223,7 +223,7 @@ test_that("intervalaveraging restores state even when it throws an error", {
                         end_date=as.IDate(paste0(1999:2017,"-12-31")))
   b0 <- CJ.dt(b0_temp, unique(a0[,list(id1,id2)]) )
 
-  ###two groups in x,two values####
+  #two groups in x,two values
   a0[,neworder:=sample(1:.N)]
   setkey(a0,"neworder")
   a0_original <- copy(a0)
@@ -243,6 +243,8 @@ test_that("intervalaveraging restores state even when it throws an error", {
 
 
 })
+
+##### intervalaverage and missingness #####
 
 test_that("intervalaverage only partially observed schedule and missingness:",{
 
@@ -277,6 +279,78 @@ test_that("intervalaverage, entirely missing interval:",{
   expect_false(
     is.nan(intervalaverage(x,y,interval_vars=c("start","end"),value_vars="value")$value)
   )
+
+
+})
+
+
+
+
+test_that("intervalaveraging interval_vars can't have names",{
+
+  #these should throw errors!
+
+
+
+  #averaging intervals longer than observed period
+  set.seed(72)
+  a_start_date <- seq(structure(10590L, class = c("IDate", "Date")),
+                      structure(17163L, class = c("IDate", "Date")),by=7L)
+
+  a0 <- CJ(id1=1:3,id2=1:100, start_date=a_start_date)
+  a0[, end_date:=start_date+6L]
+  a0[, value1:=rnorm(.N)]
+  a0[, value2:=rnorm(.N)]
+
+  b0_temp <- data.table(start_date=as.IDate(paste0(1999:2017,"-01-01")),
+                        end_date=as.IDate(paste0(1999:2017,"-12-31")))
+  b0 <- CJ.dt(b0_temp, unique(a0[,list(id1,id2)]) )
+
+
+  expect_error(intervalaverage(x=a0,
+                               y=b0,
+                               interval_vars=c(test="start_date",test2="end_date"),
+                               value_vars=c("value1","value2"),
+                               group_vars=c("id1","id2")))
+
+  expect_error(intervalaverage(x=a0,
+                               y=b0,
+                               interval_vars=c(test="start_date","end_date"),
+                               value_vars=c("value1","value2"),
+                               group_vars=c("id1","id2")))
+
+
+  expect_error(intervalaverage(x=a0,
+                               y=b0,
+                               interval_vars=c("start_date",test="end_date"),
+                               value_vars=c("value1","value2"),
+                               group_vars=c("id1","id2")))
+
+
+
+  expect_error(intervalaverage(x=a0,
+                               y=b0,
+                               interval_vars=c(test="start_date","end_date"),
+                               value_vars=c("value1","value2"),
+                               group_vars=c(test="id1","id2")))
+
+
+
+  expect_error(intervalaverage(x=a0,
+                          y=b0,
+                          interval_vars=c("start_date","end_date"),
+                          value_vars=c("value1","value2"),
+                          group_vars=c(test="id1","id2")))
+
+
+
+  expect_error(intervalaverage(x=a0,
+                               y=b0,
+                               interval_vars=c("start_date","end_date"),
+                               value_vars=c("value1","value2"),
+                               group_vars=c("id1",test="id2")))
+
+
 
 
 })
@@ -681,9 +755,11 @@ test_that("intervalaveraging", {
   expect_equal(realistic1,realistic2)
 
 
+})
 
 
-
+test_that("intervalaveraging big group 1", {
+  skip_on_cran()
   ##more realism
   set.seed(12323)
   n <- 1e5
@@ -749,8 +825,8 @@ test_that("intervalaveraging", {
 
 
 
-test_that("intervalaveraging group 2", {
-
+test_that("intervalaveraging big group 2", {
+  skip_on_cran()
 
   ####large dataset that's non-overlapping
   set.seed(18)

@@ -33,7 +33,9 @@ if \code{group_vars} is specified (non-\code{NULL}),  \code{y} must contains tho
 These column names specify columns in x and y that define
 closed (inclusive) starting and ending intervals. The column name
 specifying the lower-bound column must be specified first.
-these columns in x and y must all be of the same class and either be integer or IDate.}
+these columns in x and y must all be of the same class and either be integer or IDate.
+The interval_vars character vector cannot be named. This is reserved for future use allowing
+different interval_vars column names in x and y.}
 
 \item{value_vars}{a character vector of column names in \code{x}. This specifies
 the columns to be averaged.}
@@ -43,7 +45,9 @@ The interaction of
 these variables define groups in which averages of \code{x} values will be taken.
 specifying subjects/monitors/locations within which to take averages.
 By default this is \code{NULL}, in which case averages are taken over the entire \code{x}
-dataset for each \code{y} period.}
+dataset for each \code{y} period.
+The group_vars character vector cannot be named. This is reserved for future use allowing
+different interval_vars column names in x and y.}
 
 \item{required_percentage}{This percentage of the duration of each (possibly group-specific)
 \code{y} interval must be observed
