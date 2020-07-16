@@ -719,6 +719,7 @@ test_that("intervalaveraging", {
   ##here I want to test to make sure that when there are overlapping intervals in y, it still returns y to its original state
   #but in order to test this, I can't wrap in expect_warning
 
+  options(warn=-1)
   bleh <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
                           value_vars=c("value1","value2"),
                           group_vars=c("id1","id2"),
@@ -726,6 +727,7 @@ test_that("intervalaveraging", {
 
 
   expect_false("rowindex" %in% names(b))
+  options(warn=0)
 
 
   expect_warning(zzz1 <- intervalaverage(x=a,y=b,interval_vars=c("start","end"),
