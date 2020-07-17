@@ -425,10 +425,10 @@ intervalaverage <- function(x,
     #but we need the values from intervals in both x and y to calculate durations
 
   stopifnot(!any(c("intervalaverage__xstart_copy",
-              "intervalaverage__xend_copy")%in% names(x)))
+              "intervalaverage__xend_copy")%in% c(names(y),names(x))))
 
   stopifnot(!any(c("intervalaverage__ystart_copy",
-                   "intervalaverage__yend_copy")%in% names(y)))
+                   "intervalaverage__yend_copy")%in% c(names(x),names(y))))
 
   x[,`:=`(intervalaverage__xstart_copy=.SD[[1]],
           intervalaverage__xend_copy=.SD[[2]]

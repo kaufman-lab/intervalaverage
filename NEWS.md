@@ -1,3 +1,9 @@
+# intervalaverage 0.0.0.9010 (Development)
+
+1. Slight reversal to the breaking change before: I had forgotten I was already allowing different group_vars in x and y via providing named group_vars for intervalintersect so this functionality is turned back on. Naming either interval_vars or group_vars in the intervalintersect function is still explicitly disallowed since the functionality of allowing different join column names in x and y for that function is still not implemented.
+
+2. Rewrote some internals of the intervalintersect function and added a few additional tests. This, combined with the major rewrite of the intervalaverage function in 9009, should hopefully resolve the memory issues that were occuring i386 windows during R CMD CHECK.
+
 # intervalaverage 0.0.0.9009 (Development)
 
 1. POTENTIALLY BREAKING CHANGE: interval_vars and group_vars arguments cannot have names for the intervalaverage function. This is to allow for a future release where x and y could have differently named interval and/or grouping columns. Additinally, in the intervalintersect function group_vars cannot have names for the same reason. intervalintersect already allows for different interval_vars names in x and y via this exact scheme, so named interval_vars arguments to intervalintersect are obviously still allowed.

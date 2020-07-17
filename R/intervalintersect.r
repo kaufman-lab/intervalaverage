@@ -27,18 +27,6 @@
 #'
 #' Note that the function returns the same result if you switch x and y
 #'  (with the exception of switched column names in the case of column name conflicts as just discussed)
-#' this function is basically just a wrapper for the following code:\cr \cr
-#'
-#' \code{data.table::setkeyv(x, c(group_vars,interval_vars))} \cr
-#' \code{data.table::setkeyv(y, c(group_vars,interval_vars))} \cr
-#' \code{#do a cartesian inner interval join,} \cr
-#' \code{#within groups defined by the interaction of the group_vars variables:}\cr
-#' \code{z <- data.table::foverlaps(x,y,nomatch=NULL)} \cr
-#' \code{# then, in z, for each row, return the row-wise maximum of} \cr
-#' \code{#the interval starts from x and y and return the row-wise mininum} \cr
-#' \code{#of the interval ends from x and y:}\cr
-#' \code{<see source code>}
-#'
 #'
 #'
 #' @param x A data.table with two columns defining closed intervals (see also interval_vars parameter)
@@ -53,8 +41,6 @@
 #'  or a named character vector where the name is the column name in x and the value is the column name in y.
 #'  This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
 #'  such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
-#' The group_vars character vector cannot be named. This is reserved for future use allowing
-#' different interval_vars column names in x and y.
 #' @param interval_vars_out The column names of the interval columns in the return data.table.
 #' By default the return table will contain columns \code{c("start","end")}.
 #' If your input tables already contain these columns,
@@ -127,30 +113,22 @@
 intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars_out=c("start","end"),verbose=FALSE){
 
 
-  stopifnot(is.null(names(group_vars)))
 
   x_interval_vars <- if(!is.null(names(interval_vars))){names(interval_vars)}else{interval_vars}
   y_interval_vars <- interval_vars
 
-  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
-  is_not_preferred_keyy <- !identical(key(y), c(group_vars,interval_vars))
 
-  if(is_not_preferred_keyx){
-    statex <- savestate(x)
-    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
-    on.exit(setstate(x,statex))
-  }else{
-    statex <-NULL
-  }
-
-  if(is_not_preferred_keyy){
-    statey <- savestate(y)
-    if(verbose){message("setkeyv(y,c(group_vars,interval_vars)) prior to calling intervalintersect is recommended to save unnecessary row reordering")}
-    on.exit(setstate(y,statey),add=TRUE)
-  }else{
-    statey <-NULL
-  }
-
+  #restore remove any added columns
+  #using statefunctions isn't needed here because x and y aren't reordered.
+   #only columns are added which need to be removed
+  orig_colnames_x <-  copy(names(x))
+  orig_colnames_y <-  copy(names(y))
+  on.exit({
+    newcolsx <- setdiff(names(x),orig_colnames_x)
+    set(x,j=newcolsx,value=NULL)
+    newcolsy <- setdiff(names(y),orig_colnames_y)
+    set(y,j=newcolsy,value=NULL)
+  })
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=x_interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or IDate")
@@ -175,24 +153,59 @@ intervalintersect <- function(x,y, interval_vars, group_vars=NULL, interval_vars
   x_group_vars <- if(!is.null(names(group_vars))){names(group_vars)}else{group_vars}
   y_group_vars <- group_vars
 
-  data.table::setkeyv(y,c(y_group_vars,y_interval_vars ))
-  data.table::setkeyv(x,c(x_group_vars,x_interval_vars ))
 
-  #exclude the rowindex_colname generated
-  z <- data.table::foverlaps(x[,setdiff(names(x),statex$rowindex_colname),with=FALSE],
-                             y[,setdiff(names(y),statey$rowindex_colname),with=FALSE],
-                             nomatch=NULL)
+  ##generate copies of interval_columns so they're not lost in the non-equijoin
+  stopifnot(!any(c("intervalaverage__xstart_copy",
+                   "intervalaverage__xend_copy")%in% c(names(y),names(x))))
 
-  #column name conflicts in x and y in foverlaps are resolved by prepending "i." to columns from x
-  if(is.null(names(interval_vars))){
-    x_interval_vars <- paste0("i.",interval_vars)
-  }
+  stopifnot(!any(c("intervalaverage__ystart_copy",
+                   "intervalaverage__yend_copy")%in% c(names(x),names(y))))
+
+  x[,`:=`(intervalaverage__xstart_copy=.SD[[1]],
+          intervalaverage__xend_copy=.SD[[2]]
+  ),.SDcols=x_interval_vars]
+
+  y[,`:=`(intervalaverage__ystart_copy=.SD[[1]],
+          intervalaverage__yend_copy=.SD[[2]]
+  ),.SDcols=y_interval_vars]
+  #these columns will be deleted on exit of the function. see on.exit above
+
+
+  #construct on statement:
+  group_vars_on <- paste0(x_group_vars,"==",y_group_vars)
+  #   paste0(interval_vars[2],">=",interval_vars[1]),
+  #paste0(interval_vars[1],"<=",interval_vars[2])
+
+  interval_vars_on <- c(
+    paste0(x_interval_vars[2],">=",y_interval_vars[1]),
+    paste0(x_interval_vars[1],"<=",y_interval_vars[2])
+
+  )
+
+  z <- x[y,
+    on=c(group_vars_on,interval_vars_on),nomatch=NULL]
+
+
+  #thanks to data.table's non-equijoin weirdness, the non-equijoin columns in z
+    #are named as they were in x but have the values that were in y
+  #since we made copies of the original values, the join columns are not needed:
+  z[, (x_interval_vars):=NULL]
+
 
   #take the later of the two start dates and the earlier of the two end dates
-  data.table::set(z, j=interval_vars_out[1],value=pmax(z[[x_interval_vars[1]]],z[[y_interval_vars[1]]] ) )
-  data.table::set(z, j=interval_vars_out[2],value=pmin(z[[x_interval_vars[2]]],z[[y_interval_vars[2]]] ) )
+  data.table::set(z, j=interval_vars_out[1],
+                  value=pmax(z[["intervalaverage__xstart_copy"]],z[["intervalaverage__ystart_copy"]] ) )
+  data.table::set(z, j=interval_vars_out[2],
+                  value=pmin(z[["intervalaverage__xend_copy"]],z[["intervalaverage__yend_copy"]] ) )
 
-  other_vars <- setdiff(names(z),c(interval_vars_out,group_vars))
-  setcolorder(z, c(group_vars, interval_vars_out, other_vars))
+  z[,c("intervalaverage__ystart_copy",
+       "intervalaverage__yend_copy"):=NULL]
+  z[,c("intervalaverage__xstart_copy",
+       "intervalaverage__xend_copy"):=NULL]
+
+  other_vars <- setdiff(names(z),c(interval_vars_out,x_group_vars))
+  setcolorder(z, c(x_group_vars, interval_vars_out, other_vars))
+  setkey(z,NULL)
+  setkeyv(z,c(x_group_vars,interval_vars_out))
   z[]
 }

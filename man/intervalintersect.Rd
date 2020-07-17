@@ -28,9 +28,7 @@ these columns in x and y must all be of the same class and either be integer or 
 \item{group_vars}{NULL, or either a character vector denoting the column name(s) in x and y,
 or a named character vector where the name is the column name in x and the value is the column name in y.
 This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
-such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.
-The group_vars character vector cannot be named. This is reserved for future use allowing
-different interval_vars column names in x and y.}
+such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.}
 
 \item{interval_vars_out}{The column names of the interval columns in the return data.table.
 By default the return table will contain columns \code{c("start","end")}.
@@ -72,17 +70,6 @@ will be names as it was originally and the column in x will be prepended with th
 
 Note that the function returns the same result if you switch x and y
 (with the exception of switched column names in the case of column name conflicts as just discussed)
-this function is basically just a wrapper for the following code:\cr \cr
-
-\code{data.table::setkeyv(x, c(group_vars,interval_vars))} \cr
-\code{data.table::setkeyv(y, c(group_vars,interval_vars))} \cr
-\code{#do a cartesian inner interval join,} \cr
-\code{#within groups defined by the interaction of the group_vars variables:}\cr
-\code{z <- data.table::foverlaps(x,y,nomatch=NULL)} \cr
-\code{# then, in z, for each row, return the row-wise maximum of} \cr
-\code{#the interval starts from x and y and return the row-wise mininum} \cr
-\code{#of the interval ends from x and y:}\cr
-\code{<see source code>}
 }
 \examples{
 set.seed(42)

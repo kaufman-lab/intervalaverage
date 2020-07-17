@@ -92,8 +92,68 @@ z <- intervalintersect(x=exposure_dataset3,
                        interval_vars_out=c("start2","end2")
 )
 
+
+
+##make sure state wasn't altered
 expect_equal(exposure_dataset3_original, exposure_dataset3)
 expect_equal(addr_history_original,addr_history)
+
+
+##make sure that the order of x and y doesn't matter
+
+z2 <- intervalintersect(x=addr_history,
+                        y=exposure_dataset3,
+                        interval_vars=c(
+                          addr_start="start",
+                          addr_end="end"
+                        ),
+                        group_vars=c("location_id"),
+                        interval_vars_out=c("start2","end2")
+)
+
+setcolorder(z2, names(z))
+setkey(z2,NULL)
+setkeyv(z2,key(z))
+expect_equal(z,z2)
+
+
+
+
+
+###what happens if you have interval_vars with the same name?
+
+z3 <- intervalintersect(x=
+                          setnames(
+                            copy(addr_history),
+                            c("addr_start","addr_end"),c("start","end")
+                            ),
+                        y=exposure_dataset3,
+                        interval_vars=c("start","end"),
+                        group_vars=c("location_id"),
+                        interval_vars_out=c("start2","end2")
+)
+
+expect_equal(z,z2)
+
+
+
+###what happens if you have group_vars with different names?
+
+z3 <- intervalintersect(x=
+                          setnames(
+                            copy(addr_history),
+                            c("location_id"),c("addr_location_id")
+                          ),
+                        y=exposure_dataset3,
+                        interval_vars=c(
+                          addr_start="start",
+                          addr_end="end"
+                        ),
+                        group_vars=c(addr_location_id="location_id"),
+                        interval_vars_out=c("start2","end2")
+)
+
+
 
 #if the address history and the exposure datasets are both non-overlapping
 #then the resulting intersect must also be non-overlapping
