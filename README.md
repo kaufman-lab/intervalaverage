@@ -34,14 +34,16 @@ of looping directly in R.
 
 ## Installation
 
-You can install the current development version of the from
+You can install the package from CRAN (pending):
+
+    install.packages("intervalaverage")
+
+Or you can install the current development version of the from
 [GitHub](https://github.com/):
 
-``` r
-# install.packages("devtools")
-library(devtools)
-install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
-```
+    # install.packages("devtools")
+    library(devtools)
+    install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
 
 or you can manually clone this repository from github and install from
 source.

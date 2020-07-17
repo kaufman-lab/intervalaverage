@@ -1,3 +1,9 @@
+# intervalaverage 0.8.0 (Release)
+
+1. No major changes from 0.0.0.9010 other than changing the readme to reflect that this may be soon downloadable from CRAN.
+
+
+
 # intervalaverage 0.0.0.9010 (Development)
 
 1. Slight reversal to the breaking change before: I had forgotten I was already allowing different group_vars in x and y via providing named group_vars for intervalintersect so this functionality is turned back on. Naming either interval_vars or group_vars in the intervalintersect function is still explicitly disallowed since the functionality of allowing different join column names in x and y for that function is still not implemented.
