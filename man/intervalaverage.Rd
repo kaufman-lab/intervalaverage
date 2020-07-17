@@ -27,7 +27,7 @@ also contain columns specified in \code{group_vars}.}
 \item{y}{a data.table object containing intervals over which averages of \code{x} values should be computed.
 averaging intervals in \code{y}, unlike measurement intervals in \code{x}, may be overlapping within groups.
 if \code{group_vars} is specified (non-\code{NULL}),  \code{y} must contains those \code{group_vars} column names
-(and this would allow different averagings period for each group)}
+(and this would allow different averaging periods for each group)}
 
 \item{interval_vars}{a length-2 character vector of column names in both \code{x} and \code{y}.
 These column names specify columns in x and y that define
@@ -91,11 +91,11 @@ will be different from \code{xduration} and won't necessarily be all the same
 for each value_var.
 \item \code{xminstart}: For each returned interval (ie the intervals from Y) the minimum of the
 start intervals represented in x.  If the start of the earliest x interval is less than the start
-of the y interval, the minumum of the y interval is returned. Note, this is the minimum start
+of the y interval, the minimum of the y interval is returned. Note, this is the minimum start
 time in x matching with the y interval whether or not any value_vars were missing or not for that start time.
 If you need non-missing minimum start times, you could remove NA intervals from
 x prior to calling intervalaverage (this would need to be done separately for each value_var).
-\item \code{xmaxend}:  similar to xminstart but the maximum of the end inetervals represented in x.
+\item \code{xmaxend}:  similar to xminstart but the maximum of the end intervals represented in x.
 Again, this does not pay attention to whether the interval in x had non-missing value_vars.
 }
 }

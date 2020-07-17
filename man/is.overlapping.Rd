@@ -23,7 +23,7 @@ length-1 logical vector. TRUE if there are overlaps, FALSE otherwise.
 }
 \description{
 Test whether a data.table contains intervals which partially or completely overlap
-with other intervals in diferent rows, possibly within groups
+with other intervals in different rows, possibly within groups
 }
 \examples{
 x <- data.table(start=c(1,2),end=c(3,4))

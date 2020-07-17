@@ -49,7 +49,7 @@ exposure_dataset[start %in% as.IDate(c("2000-01-01","2000-01-08")),mean(pm25)]
 
 But we wanted the average of the first 10 days of that pm25 data, we would need to take a weighted average 
 since the period from Jan 1 to Jan 10 doesn't align perfectly with the intervals over which the pm2.5
-data is recored:
+data is recorded:
 ```{r}
 exposure_dataset[start %in% as.IDate(c("2000-01-01","2000-01-08")),weighted.mean(pm25,w=c(7/10,3/10))]
 ```
@@ -93,7 +93,7 @@ Note that the third entry for both the `pm25` and the `no2` column is `NA` or mi
 `exposure_dataset`) didn't have measurements for every day in the interval in `y` (`averaging_periods`) 
 from Jan 21, 2000 to Jan 30, 2000.
 
-Displaying the full data.table returned by the function gives us some more infomration:
+Displaying the full data.table returned by the function gives us some more information:
 ```{r}
 averaged_exposures
 ```
@@ -203,7 +203,7 @@ exposure_dataset_overlapping <- rbindlist(lapply(1:3, function(z){
 exposure_dataset_overlapping
 ```
 
-If we try to average this exposure dataset, we get an errror:
+If we try to average this exposure dataset, we get an error:
 ```{r,error=TRUE}
 intervalaverage(exposure_dataset_overlapping,averaging_periods2,
                 interval_vars=c("start","end"),
@@ -212,7 +212,7 @@ intervalaverage(exposure_dataset_overlapping,averaging_periods2,
                 required_percentage = 75)
 ```
 That's because the `intervalaverage` function is written to throw an error if there are overlaps in within groups. This
-is to encourage the user to explicitly and conciously deal with overlaps prior to averaging.
+is to encourage the user to explicitly and consciously deal with overlaps prior to averaging.
 
 Note that we can also check whether there are overlapping intervals (within specified groups) using `is.overlapping`
 ```{r}
@@ -424,7 +424,7 @@ exposure_addresss_table
 `intervalintersect` takes every possible combination of overlapping intervals within `group_vars`
 (in this sense it is a cartesian join. More on this below). 
 
-`intervalintersect` is also an inner join beacuse rows from either table that are not joined are not 
+`intervalintersect` is also an inner join because rows from either table that are not joined are not 
 included in the output. For example, rows where `addr_id==4` in `exposure_dataset5` is not included 
 since there are no rows in `address_history0` where `addr_id==4`. Additionally, none of the exposure
 periods from `exposure_dataset5` measured over `exposure_start==15` to `exposure_start==21` are 
@@ -474,7 +474,7 @@ addr_history[,list(loc_with_more_than_one_ppt=length(unique(ppt_id))>1),
 #but it does happen especially in cohorts with familial recruitment or people living in nursing home complexes.
 ```
 
-I've generated intervals which are non-overlapping representing the particpant address history
+I've generated intervals which are non-overlapping representing the participant address history
 (the code to achieve this is hidden because it's complicated and not the point of this vignette):
 ```{r,echo=FALSE}
 #generate a vector from which dates will be sampled
@@ -553,7 +553,7 @@ exposure_dataset3_addr[, location_id:=NULL]
 ```
 
 
-Even if this disctinction between how exposures are stored doesn't seem relevant, 
+Even if this distinction between how exposures are stored doesn't seem relevant, 
 this section will demonstrate how `intervalintersect`
 is actually a cartesian join (in addition to being an inner interval join).
 

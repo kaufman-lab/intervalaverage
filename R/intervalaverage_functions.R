@@ -82,7 +82,7 @@ CJ.dt <- function(...,groups=NULL) {
 #' Test for self-overlap
 #'
 #' Test whether a data.table contains intervals which partially or completely overlap
-#' with other intervals in diferent rows, possibly within groups
+#' with other intervals in different rows, possibly within groups
 #'
 #' @param x A data.table with two columns defining closed intervals (see also interval_vars).
 #' @param interval_vars A length-2 character vector corresponding to column names of x which designate
@@ -163,7 +163,7 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #' @param y a data.table object containing intervals over which averages of `x` values should be computed.
 #' averaging intervals in `y`, unlike measurement intervals in `x`, may be overlapping within groups.
 #' if `group_vars` is specified (non-`NULL`),  `y` must contains those `group_vars` column names
-#'  (and this would allow different averagings period for each group)
+#'  (and this would allow different averaging periods for each group)
 #' @param interval_vars a length-2 character vector of column names in both `x` and `y`.
 #' These column names specify columns in x and y that define
 #' closed (inclusive) starting and ending intervals. The column name
@@ -218,11 +218,11 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
 #'     for each value_var.
 #' - \code{xminstart}: For each returned interval (ie the intervals from Y) the minimum of the
 #' start intervals represented in x.  If the start of the earliest x interval is less than the start
-#' of the y interval, the minumum of the y interval is returned. Note, this is the minimum start
+#' of the y interval, the minimum of the y interval is returned. Note, this is the minimum start
 #'  time in x matching with the y interval whether or not any value_vars were missing or not for that start time.
 #'  If you need non-missing minimum start times, you could remove NA intervals from
 #'  x prior to calling intervalaverage (this would need to be done separately for each value_var).
-#' - \code{xmaxend}:  similar to xminstart but the maximum of the end inetervals represented in x.
+#' - \code{xmaxend}:  similar to xminstart but the maximum of the end intervals represented in x.
 #'  Again, this does not pay attention to whether the interval in x had non-missing value_vars.
 #' @examples
 #'x <- data.table(start=seq(1L,by=7L,length=6),

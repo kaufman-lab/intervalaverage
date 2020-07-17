@@ -47,7 +47,7 @@ for how naming conflicts are dealt with.
 Given two tables each containing a set of intervals, find all interval intersections within groups.
 Returns a data.table containing all columns from both tables.
 One use of this function is to take a table  containing an address history
-(a table containing the intervals when study participants lived at past addressess)
+(a table containing the intervals when study participants lived at past addresses)
 and join it to an exposure history table (a complete set of exposure predictions
 for each address, where the exposures are stored as the average value over a
 set of intervals) returning the set of

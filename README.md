@@ -55,8 +55,8 @@ library(intervalaverage)
 #> Loading required package: data.table
 ```
 
-Consider some PM2.5 data measured over periods occuring over a repeating
-7-day schedule:
+Consider some PM2.5 data measured over periods occurring over a
+repeating 7-day schedule:
 
 ``` r
 (x <- data.table(start=seq(1L,by=7L,length=6),
@@ -130,7 +130,7 @@ identical(z[1,pm25], (5/7)*10 + (2/7)*12)
 
 Note that in z the average value of PM2.5 is missing (NA) for the final
 period in y. This is because there is insufficient PM25 to calculate an
-average. By using a looser competeness requirements we can get an
+average. By using a looser completeness requirements we can get an
 average for this period in y (in general, this will just be the mean of
 non-missing values in x):
 
