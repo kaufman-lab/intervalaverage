@@ -79,55 +79,6 @@ CJ.dt <- function(...,groups=NULL) {
 
 
 
-#' Test for self-overlap
-#'
-#' Test whether a data.table contains intervals which partially or completely overlap
-#' with other intervals in different rows, possibly within groups
-#'
-#' @param x A data.table with two columns defining closed intervals (see also interval_vars).
-#' @param interval_vars A length-2 character vector corresponding to column names of x which designate
-#' the closed (inclusive) starting and ending intervals. The column name
-#' specifying the lower-bound column must be specified first.
-#' @param group_vars NULL or a character vector corresponding to column names of x.
-#' overlap checks will occur within groups defined by the columns specified here.
-#' @param verbose prints additional information, default is FALSE
-#' @return length-1 logical vector. TRUE if there are overlaps, FALSE otherwise.
-#'
-#' @examples
-#' x <- data.table(start=c(1,2),end=c(3,4))
-#' is.overlapping(x,c("start","end")) #the interval 1,3 overlaps with the interval 2,4
-#' y <- data.table(start=c(1,3),end=c(2,4))
-#' is.overlapping(y,c("start","end")) #the interval 1,2 doesn't overlap other intervals in y
-#' z <- data.table(start=c(1,3,1,2),end=c(2,4,3,4),id=c(1,1,2,2))
-#' is.overlapping(z,c("start","end"),"id")
-#' @export
-is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
-  if("._.irow"%in%names(x)){
-    stop("._.irow cannot be in names of x. rename this column. If you didn't expect this
-         column to be here, it may because this function previously crashed. You can
-         safely delete this column. Please submit a bug report to the github repo.")
-  }
-  ._.irow <- i.._.irow <-  NULL # due to NSE notes in R CMD check
-  stopifnot(is.data.table(x))
-
-  is_not_preferred_keyx <- !identical(key(x), c(group_vars,interval_vars))
-  if(is_not_preferred_keyx){
-    statex <- savestate(x)
-    if(verbose){message("setkeyv(x,c(group_vars,interval_vars)) prior to calling is.overlap is recommended to save unnecessary row reordering")}
-    on.exit(setstate(x,statex))
-  }
-
-    data.table::setkeyv(x,c(group_vars,interval_vars))
-    stopifnot(!"._.irow"%in%names(x))
-    stopifnot(!"i_._.irow"%in%names(x))
-    x[,._.irow:=1:nrow(x)]
-    z <- data.table::foverlaps(x,x)
-    out <- z[._.irow!=i.._.irow]
-
-  nrow(out)!=0
-}
-
-
 
 #' time-weighted average of values measured over intervals
 #'
@@ -250,7 +201,7 @@ intervalaverage <- function(x,
   #due to NSE: to avoid notes in R CMD BUILD
   intervalaverage__xstart_copy <- intervalaverage__xend_copy <- intervalaverage__xend_copy <-
     intervalaverage__ystart_copy <-  intervalaverage__yend_copy <-
-    yduration  <- xminstart <- xmaxend <- NULL
+    yduration  <- xminstart <- xmaxend <- V1 <- NULL
 
 
 
@@ -364,7 +315,13 @@ intervalaverage <- function(x,
 
     #stop if there are overlapping periods within groups:
     data.table::setkeyv(x,c(group_vars,interval_vars))
-    stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
+    any_overlaps <- any(x[, list(Cisoverlapping(.SD[[1]],.SD[[2]])),by=group_vars,.SDcols=interval_vars][, V1])
+
+    #stop if there are overlapping periods within groups:
+    if(any_overlaps){
+      stop("overlapping intervals detected")
+    }
+
     if(verbose){print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))}
   }else{
     message("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
@@ -535,7 +492,7 @@ interval_weighted_avg_slow_f <- function(x,
                                          skip_overlap_check=FALSE,
                                          verbose=FALSE){
 
-  xminstart <- xmaxend <- NULL
+  xminstart <- xmaxend <- V1 <- NULL
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or IDate")
@@ -588,8 +545,13 @@ interval_weighted_avg_slow_f <- function(x,
 
     data.table::setkeyv(x,c(group_vars,interval_vars))
 
+    any_overlaps <- any(x[, list(Cisoverlapping(.SD[[1]],.SD[[2]])),by=group_vars,.SDcols=interval_vars][, V1])
+
     #stop if there are overlapping periods within groups:
-    stopifnot(nrow(data.table::foverlaps(x,x))==nrow(x))
+    if(any_overlaps){
+      stop("overlapping intervals detected")
+    }
+
     if(verbose){print(paste(Sys.time(),"passed errorcheck: x is non-overlapping."))}
   }else{
     message("skipping errorcheck. if intervals in x are  overlapping, incorrect results may be returned without error.")
