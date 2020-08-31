@@ -1,5 +1,21 @@
 # intervalaverage 0.9.0 (in development)
 
+1. is.overlapping: interval_vars now must be of class integer or IDate, consistent
+with the other functions in this package. Since other functions only deal with
+discrete data on closed intervals, it makes sense to keep this consistent with those
+other functions.
+
+is.overlapping should be much faster (and use less memory) in the cases where the 
+dataset contains many overlaps. 
+
+new function is.overlappingv which does the same thing as is.overlapping (for a
+single group) but takes vectors as inputs. This is useful for identifying
+groups that contain overlaps. See examples.
+
+
+
+2. In intervalaverage, the internal test for overlaps is faster, so there's less
+reason to specify skip_overlap_check ==TRUE
 
 # intervalaverage 0.8.0 (Release)
 
