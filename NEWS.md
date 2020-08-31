@@ -1,3 +1,6 @@
+# intervalaverage 0.9.0 (in development)
+
+
 # intervalaverage 0.8.0 (Release)
 
 1. No major changes from 0.0.0.9010 other than changing the readme to reflect that this may be soon downloadable from CRAN.
