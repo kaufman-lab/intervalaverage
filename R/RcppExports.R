@@ -5,3 +5,7 @@ Cintervalaverage <- function(values_list, start_vector, end_vector, start_scalar
     .Call(`_intervalaverage_Cintervalaverage`, values_list, start_vector, end_vector, start_scalar, end_scalar, value_names)
 }
 
+Cisoverlapping <- function(start_vector, end_vector) {
+    .Call(`_intervalaverage_Cisoverlapping`, start_vector, end_vector)
+}
+

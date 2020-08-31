@@ -5,6 +5,18 @@
 
 using namespace Rcpp;
 
+// Cisoverlapping
+LogicalVector Cisoverlapping(IntegerVector start_vector, IntegerVector end_vector);
+RcppExport SEXP _intervalaverage_Cisoverlapping(SEXP start_vectorSEXP, SEXP end_vectorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type start_vector(start_vectorSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type end_vector(end_vectorSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cisoverlapping(start_vector, end_vector));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Cintervalaverage
 List Cintervalaverage(List values_list, IntegerVector start_vector, IntegerVector end_vector, int start_scalar, int end_scalar, CharacterVector value_names);
 RcppExport SEXP _intervalaverage_Cintervalaverage(SEXP values_listSEXP, SEXP start_vectorSEXP, SEXP end_vectorSEXP, SEXP start_scalarSEXP, SEXP end_scalarSEXP, SEXP value_namesSEXP) {
@@ -23,6 +35,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_intervalaverage_Cisoverlapping", (DL_FUNC) &_intervalaverage_Cisoverlapping, 2},
     {"_intervalaverage_Cintervalaverage", (DL_FUNC) &_intervalaverage_Cintervalaverage, 6},
     {NULL, NULL, 0}
 };
