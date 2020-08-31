@@ -21,9 +21,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Cisoverlapping
+LogicalVector Cisoverlapping(IntegerVector start_vector, IntegerVector end_vector);
+RcppExport SEXP _intervalaverage_Cisoverlapping(SEXP start_vectorSEXP, SEXP end_vectorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type start_vector(start_vectorSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type end_vector(end_vectorSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cisoverlapping(start_vector, end_vector));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_intervalaverage_Cintervalaverage", (DL_FUNC) &_intervalaverage_Cintervalaverage, 6},
+    {"_intervalaverage_Cisoverlapping", (DL_FUNC) &_intervalaverage_Cisoverlapping, 2},
     {NULL, NULL, 0}
 };
 
