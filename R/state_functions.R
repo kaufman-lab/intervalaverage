@@ -14,7 +14,7 @@ savestate <- function(x){
   original_colnames <- copy(names(x))
   rowindex_colname <- "rowindex"
   while(rowindex_colname %in% names(x)) rowindex_colname <- paste0("i.",rowindex_colname)
-  x[,eval(rowindex_colname):=1:.N]
+  set(x,j=rowindex_colname,value=1L:nrow(x))
 
   k <- key(x)
   list(key=k,rowindex_colname=rowindex_colname,original_colnames=original_colnames)

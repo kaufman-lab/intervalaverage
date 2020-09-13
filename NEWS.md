@@ -12,6 +12,10 @@ dataset contains many overlaps.
 2. In intervalaverage, the internal test for overlaps is faster, so there's less
 reason to specify skip_overlap_check ==TRUE
 
+3. When dealing with data.table objects loaded from disk, is.overlapping and other functions
+could return confusing error messages ("all(required_columns %in% names(x)) is not TRUE"). These error messages are now more clear (coming directly from the data.table package) explainig that data.table objects loaded from disk need
+to have memory allocated explicitly first "Please run setDT() or setalloccol() on it first (to pre-allocate space for new columns) before assigning by reference to it.").
+
 # intervalaverage 0.8.0 (Release)
 
 1. No major changes from 0.0.0.9010 other than changing the readme to reflect that this may be soon downloadable from CRAN.
