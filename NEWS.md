@@ -8,11 +8,6 @@ other functions.
 is.overlapping should be much faster (and use less memory) in the cases where the 
 dataset contains many overlaps. 
 
-new function is.overlappingv which does the same thing as is.overlapping (for a
-single group) but takes vectors as inputs. This is useful for identifying
-groups that contain overlaps. See examples.
-
-
 
 2. In intervalaverage, the internal test for overlaps is faster, so there's less
 reason to specify skip_overlap_check ==TRUE

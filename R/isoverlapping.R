@@ -37,9 +37,7 @@
 #' x <- data.table(start=c(1L,2L),end=c(3L,4L))
 #' is.overlapping(x,c("start","end")) #the interval 1,3 overlaps with the interval 2,4
 #'
-#' #or, using the raw vectors:
-#' is.overlappingv(x$start,x$end)
-#'
+
 #' y <- data.table(start=c(1L,3L),end=c(2L,4L))
 #' is.overlapping(y,c("start","end")) #the interval 1,2 doesn't overlap other intervals in y
 #' z <- data.table(start=c(1L,3L,1L,2L),end=c(2L,4L,3L,4L),id=c(1,1,2,2))
@@ -47,10 +45,6 @@
 #'
 #' #note the above returns TRUE because there is an overlap in the group defined by z$id==2
 #' #to identify which group(s) are overlapping:
-#'
-#' setkey(z, id, start,end)
-#' z[,key(.SD),by="id"]
-#' z[,is.overlappingv(start,end),by="id"]
 #'
 #'
 #' @export
@@ -92,37 +86,3 @@ is.overlapping <- function(x,interval_vars,group_vars=NULL,verbose=FALSE){
   any(x[, list(Cisoverlapping(.SD[[1]],.SD[[2]])),by=group_vars,.SDcols=interval_vars][, V1])
 }
 
-
-
-
-
-#' @rdname is.overlapping
-#' @param start An integer vector (including vectors of class IDate) defining the closed starts of a set of intervals.
-#' @param end An integer vector (including vectors of class IDate) defining the closed ends of a set of intervals.
-#' @return length-1 logical vector. TRUE if there are any overlaps, FALSE otherwise.
-#'
-#' @export
-is.overlappingv <- function(start,end){
-
-  if(class(start)!=class(end)){
-    stop("start and end must be of the same class")
-  }
-
-  if(!all(sapply(list(start,end),is.integer)|sapply(list(start,end),function(x){class(x)%in% c("IDate")}))){
-    stop("start an end must be of class integer or IDate")
-  }
-
-  if(any(sapply(list(start,end),function(x){any(is.na(x))}))){
-    stop("start and end must be non-missing")
-  }
-
-  #stop if interval starts are before interval ends
-  if(sum(end-start <0)!=0){
-    stop("there exist values of end which are less than corresponding values of start.
-         negative-length intervals are not allowed")
-  }
-
-  z <- data.table(start,end)
-  setorderv(z, c("start","end"))
-  Cisoverlapping(z$start,z$end)
-}
