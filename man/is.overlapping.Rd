@@ -2,12 +2,9 @@
 % Please edit documentation in R/isoverlapping.R
 \name{is.overlapping}
 \alias{is.overlapping}
-\alias{is.overlappingv}
 \title{Test for self-overlap in a data.table or a pair of vectors}
 \usage{
 is.overlapping(x, interval_vars, group_vars = NULL, verbose = FALSE)
-
-is.overlappingv(start, end)
 }
 \arguments{
 \item{x}{A data.table with two columns defining closed intervals (see also interval_vars).}
@@ -21,17 +18,11 @@ these columns be of the same class and either be integer or IDate.}
 overlap checks will occur within groups defined by the columns specified here.}
 
 \item{verbose}{prints additional information, default is FALSE}
-
-\item{start}{An integer vector (including vectors of class IDate) defining the closed starts of a set of intervals.}
-
-\item{end}{An integer vector (including vectors of class IDate) defining the closed ends of a set of intervals.}
 }
 \value{
 length-1 logical vector. TRUE if there are any overlaps, FALSE otherwise.
 (note that a single pair of overlapping intervals within a single group specified by group_vars
 will result in TRUE)
-
-length-1 logical vector. TRUE if there are any overlaps, FALSE otherwise.
 }
 \description{
 \code{is.overlapping} tests whether a data.table contains intervals which partially or completely overlap
@@ -58,9 +49,6 @@ is to just test for the existence of one or more overlap.
 x <- data.table(start=c(1L,2L),end=c(3L,4L))
 is.overlapping(x,c("start","end")) #the interval 1,3 overlaps with the interval 2,4
 
-#or, using the raw vectors:
-is.overlappingv(x$start,x$end)
-
 y <- data.table(start=c(1L,3L),end=c(2L,4L))
 is.overlapping(y,c("start","end")) #the interval 1,2 doesn't overlap other intervals in y
 z <- data.table(start=c(1L,3L,1L,2L),end=c(2L,4L,3L,4L),id=c(1,1,2,2))
@@ -68,10 +56,6 @@ is.overlapping(z,c("start","end"),"id")
 
 #note the above returns TRUE because there is an overlap in the group defined by z$id==2
 #to identify which group(s) are overlapping:
-
-setkey(z, id, start,end)
-z[,key(.SD),by="id"]
-z[,is.overlappingv(start,end),by="id"]
 
 
 }
