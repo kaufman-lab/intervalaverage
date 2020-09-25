@@ -397,7 +397,7 @@ intervalaverage <- function(x,
 
   #these copies will be deleted on function exit thanks to the on.exit state restore calls
 
-  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_"),x)))
+  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_","maxgap_"),x)))
   nobs_vars_names <- paste0("nobs_",value_vars)
   q <- x[y[!ydups],
     {
@@ -641,6 +641,7 @@ interval_weighted_avg_slow_f <- function(x,
       )
     )
 
+
   if(any(class(x[[interval_vars[1]]])%in%c("IDate"))){
     minmaxtable[, xminstart:=as.IDate(xminstart,origin="1970-01-01")]
     minmaxtable[, xmaxend:=as.IDate(xmaxend,origin="1970-01-01")]
@@ -663,9 +664,23 @@ interval_weighted_avg_slow_f <- function(x,
 
   out <- minmaxtable[out]
 
+  ##add columns for maxgaps
+  for(i in 1:length(value_vars)){
+
+    #first calulate runlength ids of is.na(<value.var>) and subset to ids
+    #corresponding to missing runs
+    #temp is a vector of ids (ie integers)
+    temp <- z[,rleid(is.na(.SD[[1]]))[is.na(.SD[[1]])], .SDcols=value_vars[i]]
+    #count the occurance of each bin--this is the number of adjacent missings and take the max
+    maxgap <- max(tabulate(temp))
+
+    set(out,j=paste0("maxgap_",value_vars[i]),value=maxgap)
+
+  }
+
 
   for(i in 1:length(value_vars)){
-    EVAL("out[100*",nobs_vars[i],"/",ydur,"< required_percentage,",value_vars[i],":=NA]")
+    EVAL("out[100*",nobs_vars[i],"/",ydur,"< required_percentage,",value_vars[i],":=as.numeric(NA)]")
   }
 
   data.table::setcolorder(out, c(group_vars,interval_vars,value_vars,ydur,xdur,nobs_vars,
