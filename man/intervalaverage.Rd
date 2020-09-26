@@ -84,7 +84,8 @@ named the same as they were in x \cr
 from x that fall into this interval from y. this will be equal to
 yduration if x is comprehensive for (ie, fully covers)  this interval from y. \cr
 \item \code{nobs_<value_vars>}: for each \code{value_var} specified, this is the count of
-non-missing values from x that fall into this interval from y. this will be
+times (or whatever the units of the intervals are)
+where there are non-missing values in x that fall into the specified interval from y. this will be
 equal to xduration if the value_var contains no NA values over the y
 interval. If there are NAs in value variables, then \code{nobs_<value_vars>}
 will be different from \code{xduration} and won't necessarily be all the same
@@ -97,6 +98,9 @@ If you need non-missing minimum start times, you could remove NA intervals from
 x prior to calling intervalaverage (this would need to be done separately for each value_var).
 \item \code{xmaxend}:  similar to xminstart but the maximum of the end intervals represented in x.
 Again, this does not pay attention to whether the interval in x had non-missing value_vars.
+\item \code{maxgap_<value_vars>} For each \code{value_var} specified, this is the length of the largest
+concurrent run of times (or whatever the units of intervals are) for which that value variable is missing
+(either structurally missing ie--no intervals at all in x--or missing with an NA or any combination thereof).
 }
 }
 \description{
@@ -119,6 +123,14 @@ but the order of these data.tables is restored on function completion or error,
 When required_percentage is less than 100, xminstart and xmaxend may be useful to
 determine whether an average meets specified coverage requirements in terms of not
 just percent of missingness but whether values are represented through the range of the y interval
+
+maxgap variables may be useful in determing whether an average from incomplete data may be
+representative of the true unknowable average (because of missingness) beyond what's already
+accounted for based counts/percentage of non-missing values. Large runs of missing
+values over time (or whatever the units of intervals are) mean missingness is not equally
+distributed through the period.  However, note that this gap information is simply returned and
+does not affect whether the average value is returned as NA or not--you'll need to apply your own
+criteria using this (these) maxgap variables.
 }
 \examples{
 x <- data.table(start=seq(1L,by=7L,length=6),

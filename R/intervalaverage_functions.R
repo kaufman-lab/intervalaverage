@@ -102,7 +102,13 @@ CJ.dt <- function(...,groups=NULL) {
 #' determine whether an average meets specified coverage requirements in terms of not
 #' just percent of missingness but whether values are represented through the range of the y interval
 #'
-#'
+#' maxgap variables may be useful in determing whether an average from incomplete data may be
+#' representative of the true unknowable average (because of missingness) beyond what's already
+#' accounted for based counts/percentage of non-missing values. Large runs of missing
+#' values over time (or whatever the units of intervals are) mean missingness is not equally
+#'  distributed through the period.  However, note that this gap information is simply returned and
+#'  does not affect whether the average value is returned as NA or not--you'll need to apply your own
+#'  criteria using this (these) maxgap variables.
 #'
 #' @param x a data.table containing values measured over intervals. see
 #' `interval_vars` parameter
@@ -162,7 +168,8 @@ CJ.dt <- function(...,groups=NULL) {
 #'   from x that fall into this interval from y. this will be equal to
 #'   yduration if x is comprehensive for (ie, fully covers)  this interval from y. \cr
 #' - \code{nobs_<value_vars>}: for each \code{value_var} specified, this is the count of
-#'  non-missing values from x that fall into this interval from y. this will be
+#'  times (or whatever the units of the intervals are)
+#'  where there are non-missing values in x that fall into the specified interval from y. this will be
 #'   equal to xduration if the value_var contains no NA values over the y
 #'   interval. If there are NAs in value variables, then \code{nobs_<value_vars>}
 #'    will be different from \code{xduration} and won't necessarily be all the same
@@ -175,6 +182,9 @@ CJ.dt <- function(...,groups=NULL) {
 #'  x prior to calling intervalaverage (this would need to be done separately for each value_var).
 #' - \code{xmaxend}:  similar to xminstart but the maximum of the end intervals represented in x.
 #'  Again, this does not pay attention to whether the interval in x had non-missing value_vars.
+#' - \code{maxgap_<value_vars>} For each \code{value_var} specified, this is the length of the largest
+#'  concurrent run of times (or whatever the units of intervals are) for which that value variable is missing
+#'  (either structurally missing ie--no intervals at all in x--or missing with an NA or any combination thereof).
 #' @examples
 #'x <- data.table(start=seq(1L,by=7L,length=6),
 #'                end=seq(7L,by=7L,length=6),
@@ -397,7 +407,7 @@ intervalaverage <- function(x,
 
   #these copies will be deleted on function exit thanks to the on.exit state restore calls
 
-  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_"),x)))
+  value_names <- unlist(lapply(value_vars, function(x) paste0(c("","nobs_","maxgap_"),x)))
   nobs_vars_names <- paste0("nobs_",value_vars)
   q <- x[y[!ydups],
     {
@@ -492,7 +502,7 @@ interval_weighted_avg_slow_f <- function(x,
                                          skip_overlap_check=FALSE,
                                          verbose=FALSE){
 
-  xminstart <- xmaxend <- V1 <- NULL
+  xminstart <- xmaxend <- V1 <- maxgap_____ <- NULL
 
   if(x[,!all(sapply(.SD,is.integer)|sapply(.SD,function(x){class(x)%in% c("IDate")})),.SDcols=interval_vars]){
     stop("interval_vars must correspond to columns in x of class integer or IDate")
@@ -626,7 +636,6 @@ interval_weighted_avg_slow_f <- function(x,
   z <- x_expanded[y_expanded]
 
   avg_call <- paste0(value_vars,"=mean(",value_vars,",na.rm=TRUE)",collapse=",")
-  paste0()
   nobs_call <- paste0(nobs_vars,"=sum(!is.na(",value_vars,"))",collapse=",")
   ydur_call <- paste0(ydur,"=length(unique(",t,"))")
   xdur_call <- paste0(xdur,"=sum(",measurement,",na.rm=TRUE)")
@@ -640,6 +649,7 @@ interval_weighted_avg_slow_f <- function(x,
        "z[!is.na(",measurement,"),list(xminstart=min(time),xmaxend=max(time)),by=c(interval_vars,group_vars)]"
       )
     )
+
 
   if(any(class(x[[interval_vars[1]]])%in%c("IDate"))){
     minmaxtable[, xminstart:=as.IDate(xminstart,origin="1970-01-01")]
@@ -663,9 +673,28 @@ interval_weighted_avg_slow_f <- function(x,
 
   out <- minmaxtable[out]
 
+  ##add columns for maxgaps
+  for(i in 1:length(value_vars)){
+
+    #first calulate runlength ids of is.na(<value.var>) and subset to ids
+    #corresponding to missing runs
+    #temp is a vector of ids (ie integers)
+    maxgapdt <- z[,list(maxgap_____={
+      temp <- rleid(is.na(.SD[[1]]))[is.na(.SD[[1]])]
+      max(tabulate(temp))
+      }), .SDcols=value_vars[i],by=c(group_vars,interval_vars)]
+    #count the occurance of each bin--this is the number of adjacent missings and take the max
+
+
+    data.table::setkeyv(maxgapdt,c(group_vars,interval_vars))
+    out[maxgapdt,maxgap_____:=maxgap_____]
+    data.table::setnames(out, "maxgap_____",paste0("maxgap_",value_vars[i]))
+
+  }
+
 
   for(i in 1:length(value_vars)){
-    EVAL("out[100*",nobs_vars[i],"/",ydur,"< required_percentage,",value_vars[i],":=NA]")
+    EVAL("out[100*",nobs_vars[i],"/",ydur,"< required_percentage,",value_vars[i],":=as.numeric(NA)]")
   }
 
   data.table::setcolorder(out, c(group_vars,interval_vars,value_vars,ydur,xdur,nobs_vars,

@@ -381,6 +381,74 @@ test_that("intervalaveraging", {
 
 
 
+  ### simple example where averaging period is not fully observed (structural missingness)
+  set.seed(15)
+  a0.00 <- data.table(start=c(2L,11L),value1=rnorm(2),value2=rnorm(2))
+  a0.00[,end:=c(9L,20L)]
+  b0.0 <- data.table(start=1L,end=25L)
+
+  q0.001 <- intervalaverage(x=a0.00,
+                           y=b0.0,
+                           interval_vars=c("start","end"),
+                           value_vars=c("value1","value2"))
+
+
+  q0.002 <- intervalaverage:::interval_weighted_avg_slow_f(x=a0.00,
+                                                          y=b0.0,
+                                                          interval_vars=c("start","end"),
+                                                          value_vars=c("value1","value2"))
+
+  expect_equal(q0.001,q0.002)
+  expect_equal(nrow(q0.001),nrow(b0.0))
+
+  q0.001a <- intervalaverage(x=a0.00,
+                            y=b0.0,
+                            interval_vars=c("start","end"),
+                            value_vars=c("value1","value2"),
+                            required_percentage=50)
+
+
+  q0.002a <- intervalaverage:::interval_weighted_avg_slow_f(x=a0.00,
+                                                           y=b0.0,
+                                                           interval_vars=c("start","end"),
+                                                           value_vars=c("value1","value2"),
+                                                           required_percentage=50)
+
+
+
+  expect_equal(q0.001a,q0.002a)
+
+
+
+  ###averaging period not fully observed (structural and NA missingness)
+  set.seed(15)
+  a0.000 <- data.table(start=c(2L,9L,11L,20L),value1=rnorm(3),value2=rnorm(3))
+  a0.000[,end:=c(8L,9L,19L,20L)]
+  a0.000[start==9, value1:=NA]
+  a0.000[start==9, value2:=NA]
+  a0.000[start==20, value1:=NA]
+  a0.000[start==20, value2:=NA]
+  b0.0 <- data.table(start=1L,end=25L)
+
+
+  q0.0001 <- intervalaverage(x=a0.000,
+                             y=b0.0,
+                             interval_vars=c("start","end"),
+                             value_vars=c("value1","value2"),
+                             required_percentage=50)
+
+
+  q0.0002 <- intervalaverage:::interval_weighted_avg_slow_f(x=a0.000,
+                                                            y=b0.0,
+                                                            interval_vars=c("start","end"),
+                                                            value_vars=c("value1","value2"),
+                                                            required_percentage=50)
+
+
+
+  expect_equal(q0.0001,q0.0002)
+
+
 
 
   #averaging intervals longer than observed period
