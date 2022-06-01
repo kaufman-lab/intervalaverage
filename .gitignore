@@ -1,6 +1,4 @@
 *.Rproj.user
-*.Rproj
-intervalaverage.Rproj
 .Rhistory
 inst/doc
 .Rproj.user
