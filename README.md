@@ -34,16 +34,16 @@ of looping directly in R.
 
 ## Installation
 
-You can install the package from CRAN (pending):
+You can install the package from CRAN:
 
     install.packages("intervalaverage")
 
 Or you can install the current development version of the from
-[GitHub](https://github.com/):
+[GitHub](https://github.com/kaufman-lab/intervalaverage):
 
     # install.packages("devtools")
     library(devtools)
-    install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
+    install_github("kaufman-lab/intervalaverage", "main", build_vignettes=TRUE)
 
 or you can manually clone this repository from github and install from
 source.
@@ -114,6 +114,13 @@ This is the exact purpose of the intervalaverage function:
 #> 4:    24  30 16.285714         7         7         7        24      30
 #> 5:    31  37 20.857143         7         7         7        31      37
 #> 6:    38  44        NA         7         5         5        38      42
+#>    maxgap_pm25
+#> 1:           0
+#> 2:           0
+#> 3:           0
+#> 4:           0
+#> 5:           0
+#> 6:           2
 ```
 
 (Note that the interval average package always assumes specified
@@ -144,6 +151,13 @@ non-missing values in x):
 #> 4:    24  30 16.285714         7         7         7        24      30
 #> 5:    31  37 20.857143         7         7         7        31      37
 #> 6:    38  44 18.000000         7         5         5        38      42
+#>    maxgap_pm25
+#> 1:           0
+#> 2:           0
+#> 3:           0
+#> 4:           0
+#> 5:           0
+#> 6:           2
 ```
 
 There is much more described in the vignette. For example, it is
@@ -155,11 +169,16 @@ See the vignette for examples.
 
 ## Vignette
 
-Read the intro vignette for an in-depth demonstration of the package
+Read the intro vignette for a demonstration of the core package
 functions.
 
     library(intervalaverage)
     vignette("intervalaverage-intro")
+
+More detail is on using the package is available in the advanced
+vignette.
+
+    vignette("intervalaverage-advanced")
 
 For an overview of the internals of the `intervalaverage` function, see
 the technical vignette:
