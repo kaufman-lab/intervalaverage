@@ -20,7 +20,8 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-	data.table (>= 1.12.8)
+    data.table (>= 1.12.8),
+    R (>= 2.10)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Suggests: 

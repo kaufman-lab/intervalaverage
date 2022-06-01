@@ -49,18 +49,18 @@ of looping directly in R.
 
 ## Installation
 
-You can install the package from CRAN (pending):
+You can install the package from CRAN:
 ``` 
 install.packages("intervalaverage")
 ```
 
 
-Or you can install the current development version of the from [GitHub](https://github.com/):
+Or you can install the current development version of the from [GitHub](https://github.com/kaufman-lab/intervalaverage):
 
 ```
 # install.packages("devtools")
 library(devtools)
-install_github("kaufman-lab/intervalaverage","main",build_vignettes=TRUE)
+install_github("kaufman-lab/intervalaverage", "main", build_vignettes=TRUE)
 ```
 
 or you can manually clone this repository from github and install from source.
@@ -121,11 +121,17 @@ There is much more described in the vignette. For example, it is possible to cal
 
 ## Vignette
 
-Read the intro vignette for an in-depth demonstration of the package functions.
+Read the intro vignette for a demonstration of the core package functions.
 
 ```
 library(intervalaverage)
 vignette("intervalaverage-intro")
+```
+
+More detail is on using the package is available in the advanced vignette. 
+
+```
+vignette("intervalaverage-advanced")
 ```
 
 For an overview of the internals of the  `intervalaverage` function, see the technical vignette:
