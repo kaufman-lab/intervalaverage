@@ -31,7 +31,7 @@ may be useful.*
 The `intervalaverage` package is intended to do a specific job very
 efficiently. Namely, it averages data measured non-continuously over
 arbitrary intervals. It is implemented in C++ and `data.table` in order
-to do this job as fast and in as memory-efficient way as possible.
+to do this job as fast and in as memory-efficient a way as possible.
 
 The motivation for this package was to efficiently create time- and
 location-weighted averages of air pollution exposure for participants in
@@ -45,8 +45,8 @@ periods produced by the models.
 
 There are likely many other applications for averaging non-continuous
 measurements over arbitrary intervals, but this documentation will
-demonstrate the example of calculating long-term air pollution exposures
-for individuals.
+demonstrate the application of calculating long-term air pollution exposures
+for individuals over multiple locations. 
 
 ## Data
 
@@ -63,20 +63,15 @@ We will use two data sets (included in this package) to demonstrate
 library(intervalaverage)
 data("no2")
 data("address_history")
-```
-
-Note that each of these data sets is a `data.table` and the date columns
-are `IDate`s. Because of a quirk of `data.table`, however, it is still
-necessary to use `setDT` on each since they were loaded from the
-package.
-
-```{r}
-setDT(no2)
+setDT(no2) 
 setDT(address_history)
-
 head(no2[])
 head(address_history[])
 ```
+
+Note that each of these data sets is already a `data.table` and the date columns
+are `IDate`s. However, due to a quirk in `data.table`, we need to run `setDT` 
+on data loaded with the `data` function. 
 
 ## Averaging Measurements over Arbitrary Intervals
 
@@ -123,7 +118,7 @@ You'll notice that there are many missing values. By default,
 completely covered by the values in `x`, and many of our addresses were
 occupied outside the time period covered by the NO~2~ model. To relax
 this requirement and return a value even when not all of the interval
-had modeled values, use the `required_percentage` argument. For example,
+had NO~2~ values, use the `required_percentage` argument. For example,
 here we accept an average if at least 80% of the interval has values.
 
 ```{r}
@@ -139,7 +134,7 @@ head(averaged_exposures[ , .(location_id, start_date, end_date, no2)])
 ```
 
 `intervalaverage` also includes some diagnostic columns in its output
-that can be useful in diagnosing why `NA`s are being returned (this is
+that can be useful in determining why `NA`s are being returned (this is
 why we selected only `location_id`, `start_date`, `end_date`, and `no2`
 to display above). See the "Value" section of `help(intervalaverage)`
 for an explanation of what these columns mean.
@@ -148,9 +143,9 @@ for an explanation of what these columns mean.
 
 If you look closely at our address history, you'll see that some
 locations and dates are shared among multiple `person_id`s. This makes
-sense, since more than one person often live in the same house! You'll
+sense, since more than one person often lives in the same house! You'll
 also notice that people move (so each `person_id` may be associated with
-multiple `location_id`s).
+multiple `location_id`s). 
 
 To create an average for each person (rather than location), we'll need
 to link the `no2` measurement at each location to the person who lived
@@ -199,7 +194,7 @@ We will work through both, and introduce one more function along the way.
 ### Full Address History Average
 
 Again, the `y` argument of `intervalaverage` tells it what date range to
-average for every group in the values data set. So we first need to create a 
+average for every group in the values data set (`x`). So we first need to create a 
 `data.table` that contains the beginning and end of each person's full address
 history. 
 
@@ -251,7 +246,7 @@ years <- CJ.dt(years, unique(address_history[ , .(person_id)]))
 head(years[order(year, person_id)])
 ```
 
-Now we can apply the `intervalaverage` function again to get a yearly average for each person Recall that the 
+Now we can apply the `intervalaverage` function again to get a yearly average for each person. Recall that the 
 NO~2~ data is also annual, so the only rows that will actually be averaged will be those for years where a person
 moved (since a person will have had an NO~2~ value for each address they lived in that year). 
 
