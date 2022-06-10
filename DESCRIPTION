@@ -33,3 +33,4 @@ LinkingTo:
     Rcpp
 Imports: 
     Rcpp
+URL: https://kaufman-lab.github.io/intervalaverage/
