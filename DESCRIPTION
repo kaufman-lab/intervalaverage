@@ -23,7 +23,7 @@ Depends:
     data.table (>= 1.12.8),
     R (>= 2.10)
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.2
 Suggests: 
     knitr,
     rmarkdown,

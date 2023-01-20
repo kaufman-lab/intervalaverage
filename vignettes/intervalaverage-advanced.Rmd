@@ -3,7 +3,7 @@ title: "Advanced Introduction to intervalaverage"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{intervalaverage-intro}
+  %\VignetteIndexEntry{intervalaverage-advanced}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
