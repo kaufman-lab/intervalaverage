@@ -183,23 +183,34 @@ no2_by_person[person_id == 5 & year(start) %in% 1995:1997]
 
 Now that we have a set of NO~2~ values associated with the `person_id`
 rather than `location_id`, we can use `intervalaverage` to find the
-average for any period of time. That could be a period that is unique to each participant
-(for example, the full length of their address history). Or it could be
-consistent for all people in the data set, such as a yearly average
+average for any period of time. That could be a period that is unique to each participant. 
+Or it could be consistent for all people in the data set, such as a yearly average
 (where each year is a time-weighted average of the places the person
 lived that year). 
 
 We will work through both, and introduce one more function along the way. 
 
-### Full Address History Average
+### Average Over the Year Prior to Study Enrollment 
+
+The package includes another data.table with each person's enrollment date in our
+study. We will use it to calculate the average exposure for each participant in the 
+year before they joined our study. 
+
+```{r}
+data(enrollment)
+setDT(enrollment)
+head(enrollment)
+```
 
 Again, the `y` argument of `intervalaverage` tells it what date range to
 average for every group in the values data set (`x`). So we first need to create a 
-`data.table` that contains the beginning and end of each person's full address
-history. 
+`data.table` that contains the beginning and end of our desired averaging period for each participant from the `enrollment`
+data set. We'll define the "year prior" to enrollment in our study as the 365 days preceding the enrollment date
+(i.e. the period from 365 days before enrollment to 1 day before enrollment). 
 
 ```{r}
-address_coverage <- address_history[ , .(person_id, start = min(start_date), end = min(end_date)), by = 'person_id']
+pre_enrollment <- enrollment[ , .(person_id, start = enroll_date - 365L, end = enroll_date - 1L)]
+head(pre_enrollment)
 ```
 
 _You may notice I've used `start` and `end` here rather than `start_date` and `end_date` as I did previously. 
@@ -210,22 +221,23 @@ in future versions of the package._
 Now we simply apply `intervalaverage`, again allowing for 20% missingness in `no2` values:
 
 ```{r}
-no2_overall <- intervalaverage(
+no2_pre_enrollment <- intervalaverage(
   x = no2_by_person, 
-  y = address_coverage, 
+  y = pre_enrollment, 
   interval_vars = c('start', 'end'), 
   group_vars = 'person_id',
   value_vars = 'no2',
   required_percentage = 80
 )  
-head(no2_overall[, .(person_id, start, end, no2)])
+head(no2_pre_enrollment[, .(person_id, start, end, no2)])
 ```
 
 ### Annual Averages
 
 Finally, let's calculate annual (calendar-year) averages for 2000-2004. We'll need to build a `y` argument 
-for the `intervalaverage` function that has a start date, end date for each year. However, we *also* need to repeat each
-year once for every participant, because `y` must contain the same grouping variable(s) as `x`. 
+for the `intervalaverage` function that has a start date, end date for each year. However, even though 
+the periods we are averaging over are the same for each participant, we *also* need to repeat each
+year once for every participant. This is because  because `y` must contain the same grouping variable(s) as `x`. 
 
 This gives us an opportunity to try a convenient helper function in `intervalaverage`: `CJ.dt`. This is a more
 convenient version of `data.table::CJ` (`CJ` as in "Cross Join") that can take `data.tables` as arguments instead of just vectors. 
