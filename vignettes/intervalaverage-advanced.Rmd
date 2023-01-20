@@ -1,5 +1,5 @@
 ---
-title: "Introduction to intervalaverage"
+title: "Advanced Introduction to intervalaverage"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
