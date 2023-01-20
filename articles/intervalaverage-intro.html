@@ -284,22 +284,48 @@ that value applied.</p>
 <p>Now that we have a set of NO<sub>2</sub> values associated with the
 <code>person_id</code> rather than <code>location_id</code>, we can use
 <code>intervalaverage</code> to find the average for any period of time.
-That could be a period that is unique to each participant (for example,
-the full length of their address history). Or it could be consistent for
-all people in the data set, such as a yearly average (where each year is
-a time-weighted average of the places the person lived that year).</p>
+That could be a period that is unique to each participant. Or it could
+be consistent for all people in the data set, such as a yearly average
+(where each year is a time-weighted average of the places the person
+lived that year).</p>
 <p>We will work through both, and introduce one more function along the
 way.</p>
 <div class="section level3">
-<h3 id="full-address-history-average">Full Address History Average<a class="anchor" aria-label="anchor" href="#full-address-history-average"></a>
+<h3 id="average-over-the-year-prior-to-study-enrollment">Average Over the Year Prior to Study Enrollment<a class="anchor" aria-label="anchor" href="#average-over-the-year-prior-to-study-enrollment"></a>
 </h3>
+<p>The package includes another data.table with each person’s enrollment
+date in our study. We will use it to calculate the average exposure for
+each participant in the year before they joined our study.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">enrollment</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setDT.html" class="external-link">setDT</a></span><span class="op">(</span><span class="va">enrollment</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">enrollment</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    person_id enroll_date</span></span>
+<span><span class="co">#&gt; 1:         1  2016-01-08</span></span>
+<span><span class="co">#&gt; 2:         2  2016-08-18</span></span>
+<span><span class="co">#&gt; 3:         3  2015-08-12</span></span>
+<span><span class="co">#&gt; 4:         4  2016-07-18</span></span>
+<span><span class="co">#&gt; 5:         5  2016-07-11</span></span>
+<span><span class="co">#&gt; 6:         6  2015-07-26</span></span></code></pre></div>
 <p>Again, the <code>y</code> argument of <code>intervalaverage</code>
 tells it what date range to average for every group in the values data
 set (<code>x</code>). So we first need to create a
-<code>data.table</code> that contains the beginning and end of each
-person’s full address history.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">address_coverage</span> <span class="op">&lt;-</span> <span class="va">address_history</span><span class="op">[</span> , <span class="fu">.</span><span class="op">(</span><span class="va">person_id</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">start_date</span><span class="op">)</span>, end <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">end_date</span><span class="op">)</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">'person_id'</span><span class="op">]</span></span></code></pre></div>
+<code>data.table</code> that contains the beginning and end of our
+desired averaging period for each participant from the
+<code>enrollment</code> data set. We’ll define the “year prior” to
+enrollment in our study as the 365 days preceding the enrollment date
+(i.e. the period from 365 days before enrollment to 1 day before
+enrollment).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pre_enrollment</span> <span class="op">&lt;-</span> <span class="va">enrollment</span><span class="op">[</span> , <span class="fu">.</span><span class="op">(</span><span class="va">person_id</span>, start <span class="op">=</span> <span class="va">enroll_date</span> <span class="op">-</span> <span class="fl">365L</span>, end <span class="op">=</span> <span class="va">enroll_date</span> <span class="op">-</span> <span class="fl">1L</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pre_enrollment</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    person_id      start        end</span></span>
+<span><span class="co">#&gt; 1:         1 2015-01-08 2016-01-07</span></span>
+<span><span class="co">#&gt; 2:         2 2015-08-19 2016-08-17</span></span>
+<span><span class="co">#&gt; 3:         3 2014-08-12 2015-08-11</span></span>
+<span><span class="co">#&gt; 4:         4 2015-07-19 2016-07-17</span></span>
+<span><span class="co">#&gt; 5:         5 2015-07-12 2016-07-10</span></span>
+<span><span class="co">#&gt; 6:         6 2014-07-26 2015-07-25</span></span></code></pre></div>
 <p><em>You may notice I’ve used <code>start</code> and <code>end</code>
 here rather than <code>start_date</code> and <code>end_date</code> as I
 did previously. This is because of a quirk of
@@ -309,23 +335,23 @@ names, and in the next step, the interval column names need to match.
 This will be fixed in future versions of the package.</em></p>
 <p>Now we simply apply <code>intervalaverage</code>, again allowing for
 20% missingness in <code>no2</code> values:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">no2_overall</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">no2_pre_enrollment</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span></span>
 <span>  x <span class="op">=</span> <span class="va">no2_by_person</span>, </span>
-<span>  y <span class="op">=</span> <span class="va">address_coverage</span>, </span>
+<span>  y <span class="op">=</span> <span class="va">pre_enrollment</span>, </span>
 <span>  interval_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'start'</span>, <span class="st">'end'</span><span class="op">)</span>, </span>
 <span>  group_vars <span class="op">=</span> <span class="st">'person_id'</span>,</span>
 <span>  value_vars <span class="op">=</span> <span class="st">'no2'</span>,</span>
 <span>  required_percentage <span class="op">=</span> <span class="fl">80</span></span>
 <span><span class="op">)</span>  </span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">no2_overall</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">person_id</span>, <span class="va">start</span>, <span class="va">end</span>, <span class="va">no2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    person_id      start        end      no2</span></span>
-<span><span class="co">#&gt; 1:         1 1989-06-01 2021-12-31       NA</span></span>
-<span><span class="co">#&gt; 2:         2 1989-06-01 2001-10-31 21.53388</span></span>
-<span><span class="co">#&gt; 3:         3 1989-06-01 1996-07-05 39.81925</span></span>
-<span><span class="co">#&gt; 4:         4 1989-06-01 1992-06-30 17.59011</span></span>
-<span><span class="co">#&gt; 5:         5 1989-06-01 1996-11-30 42.33158</span></span>
-<span><span class="co">#&gt; 6:         6 1989-06-01 1990-06-30       NA</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">no2_pre_enrollment</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">person_id</span>, <span class="va">start</span>, <span class="va">end</span>, <span class="va">no2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    person_id      start        end no2</span></span>
+<span><span class="co">#&gt; 1:         1 2015-01-08 2016-01-07  NA</span></span>
+<span><span class="co">#&gt; 2:         2 2015-08-19 2016-08-17  NA</span></span>
+<span><span class="co">#&gt; 3:         3 2014-08-12 2015-08-11  NA</span></span>
+<span><span class="co">#&gt; 4:         4 2015-07-19 2016-07-17  NA</span></span>
+<span><span class="co">#&gt; 5:         5 2015-07-12 2016-07-10  NA</span></span>
+<span><span class="co">#&gt; 6:         6 2014-07-26 2015-07-25  NA</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="annual-averages">Annual Averages<a class="anchor" aria-label="anchor" href="#annual-averages"></a>
@@ -333,9 +359,10 @@ This will be fixed in future versions of the package.</em></p>
 <p>Finally, let’s calculate annual (calendar-year) averages for
 2000-2004. We’ll need to build a <code>y</code> argument for the
 <code>intervalaverage</code> function that has a start date, end date
-for each year. However, we <em>also</em> need to repeat each year once
-for every participant, because <code>y</code> must contain the same
-grouping variable(s) as <code>x</code>.</p>
+for each year. However, even though the periods we are averaging over
+are the same for each participant, we <em>also</em> need to repeat each
+year once for every participant. This is because because <code>y</code>
+must contain the same grouping variable(s) as <code>x</code>.</p>
 <p>This gives us an opportunity to try a convenient helper function in
 <code>intervalaverage</code>: <code>CJ.dt</code>. This is a more
 convenient version of <code><a href="https://Rdatatable.gitlab.io/data.table/reference/J.html" class="external-link">data.table::CJ</a></code> (<code>CJ</code> as in
@@ -344,7 +371,7 @@ instead of just vectors. By cross joining our unique
 <code>person_id</code>s with the years 2000-2004, we can construct a
 <code>y</code> argument that will work in the
 <code>intervalaverage</code> function.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Build a data.table with start and end dates for each year</span></span>
 <span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2000</span><span class="op">:</span><span class="fl">2004</span><span class="op">)</span> </span>
 <span><span class="va">years</span><span class="op">[</span> , <span class="va">start</span> <span class="op">:=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/IDateTime.html" class="external-link">as.IDate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">year</span>, <span class="st">"01"</span>, <span class="st">"01"</span>, sep <span class="op">=</span> <span class="st">"-"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
@@ -356,7 +383,7 @@ instead of just vectors. By cross joining our unique
 <span><span class="co">#&gt; 3: 2002 2002-01-01 2002-12-31</span></span>
 <span><span class="co">#&gt; 4: 2003 2003-01-01 2003-12-31</span></span>
 <span><span class="co">#&gt; 5: 2004 2004-01-01 2004-12-31</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Cross join with the unique person_ids in our data</span></span>
 <span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CJ.dt.html">CJ.dt</a></span><span class="op">(</span><span class="va">years</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">address_history</span><span class="op">[</span> , <span class="fu">.</span><span class="op">(</span><span class="va">person_id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">years</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">person_id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -373,7 +400,7 @@ data is also annual, so the only rows that will actually be averaged
 will be those for years where a person moved (since a person will have
 had an NO<sub>2</sub> value for each address they lived in that
 year).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">no2_annual</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span></span>
 <span>  x <span class="op">=</span> <span class="va">no2_by_person</span>, </span>
 <span>  y <span class="op">=</span> <span class="va">years</span>, </span>
