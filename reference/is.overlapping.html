@@ -34,10 +34,10 @@ intervals defined by a pair of vectors contains intervals which partially or com
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/intervalaverage-advanced.html">Introduction to intervalaverage</a>
+      <a href="../articles/intervalaverage-advanced.html">Advanced Introduction to intervalaverage</a>
     </li>
     <li>
-      <a href="../articles/intervalaverage-intro.html">Introduction to `intervalaverage`</a>
+      <a href="../articles/intervalaverage-intro.html">Quick Introduction to intervalaverage</a>
     </li>
     <li>
       <a href="../articles/intervalaverage-technicaloverview.html">Technical overview of the intervalaverage function</a>
@@ -67,27 +67,36 @@ intervals defined by a pair of vectors contains intervals which partially or com
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">x</span>, <span class="va">interval_vars</span>, group_vars <span class="op">=</span> <span class="cn">NULL</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">x</span>, <span class="va">interval_vars</span>, group_vars <span class="op">=</span> <span class="cn">NULL</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p>A data.table with two columns defining closed intervals (see also interval_vars).</p></dd>
+
+
 <dt>interval_vars</dt>
 <dd><p>A length-2 character vector corresponding to column names of x which designate
 the closed (inclusive) starting and ending intervals. The column name
 specifying the lower-bound column must be specified first.
 these columns be of the same class and either be integer or IDate.</p></dd>
+
+
 <dt>group_vars</dt>
 <dd><p>NULL or a character vector corresponding to column names of x.
 overlap checks will occur within groups defined by the columns specified here.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>prints additional information, default is FALSE</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>length-1 logical vector. TRUE if there are any overlaps, FALSE otherwise.
+    
+
+<p>length-1 logical vector. TRUE if there are any overlaps, FALSE otherwise.
 (note that a single pair of overlapping intervals within a single group specified by group_vars
 will result in TRUE)</p>
     </div>
@@ -109,21 +118,21 @@ is to just test for the existence of one or more overlap.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">2L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3L</span>,<span class="fl">4L</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">x</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">)</span> <span class="co">#the interval 1,3 overlaps with the interval 2,4</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">2L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3L</span>,<span class="fl">4L</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">x</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">)</span> <span class="co">#the interval 1,3 overlaps with the interval 2,4</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">3L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2L</span>,<span class="fl">4L</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">y</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">)</span> <span class="co">#the interval 1,2 doesn't overlap other intervals in y</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">3L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2L</span>,<span class="fl">4L</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">y</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">)</span> <span class="co">#the interval 1,2 doesn't overlap other intervals in y</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
-<span class="r-in"><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">3L</span>,<span class="fl">1L</span>,<span class="fl">2L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2L</span>,<span class="fl">4L</span>,<span class="fl">3L</span>,<span class="fl">4L</span><span class="op">)</span>,id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">z</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,<span class="st">"id"</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">3L</span>,<span class="fl">1L</span>,<span class="fl">2L</span><span class="op">)</span>,end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2L</span>,<span class="fl">4L</span>,<span class="fl">3L</span>,<span class="fl">4L</span><span class="op">)</span>,id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">is.overlapping</span><span class="op">(</span><span class="va">z</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,<span class="st">"id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#note the above returns TRUE because there is an overlap in the group defined by z$id==2</span></span>
-<span class="r-in"><span class="co">#to identify which group(s) are overlapping:</span></span>
-<span class="r-in"></span>
-<span class="r-in"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#note the above returns TRUE because there is an overlap in the group defined by z$id==2</span></span></span>
+<span class="r-in"><span><span class="co">#to identify which group(s) are overlapping:</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -138,7 +147,7 @@ is to just test for the existence of one or more overlap.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

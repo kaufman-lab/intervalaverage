@@ -39,10 +39,10 @@ exposure intervals at addresses clipped to exactly when the participant lived at
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/intervalaverage-advanced.html">Introduction to intervalaverage</a>
+      <a href="../articles/intervalaverage-advanced.html">Advanced Introduction to intervalaverage</a>
     </li>
     <li>
-      <a href="../articles/intervalaverage-intro.html">Introduction to `intervalaverage`</a>
+      <a href="../articles/intervalaverage-intro.html">Quick Introduction to intervalaverage</a>
     </li>
     <li>
       <a href="../articles/intervalaverage-technicaloverview.html">Technical overview of the intervalaverage function</a>
@@ -77,22 +77,26 @@ exposure intervals at addresses clipped to exactly when the participant lived at
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">intervalintersect</span><span class="op">(</span>
-  <span class="va">x</span>,
-  <span class="va">y</span>,
-  <span class="va">interval_vars</span>,
-  group_vars <span class="op">=</span> <span class="cn">NULL</span>,
-  interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>, <span class="st">"end"</span><span class="op">)</span>,
-  verbose <span class="op">=</span> <span class="cn">FALSE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">intervalintersect</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">y</span>,</span>
+<span>  <span class="va">interval_vars</span>,</span>
+<span>  group_vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>, <span class="st">"end"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p>A data.table with two columns defining closed intervals (see also interval_vars parameter)</p></dd>
+
+
 <dt>y</dt>
 <dd><p>A data.table with two columns defining closed intervals (see also interval_vars parameter)</p></dd>
+
+
 <dt>interval_vars</dt>
 <dd><p>Either a length-2 character vector denoting column names in both x and y or a named
 length-2 character vector where the names are column names in x and the values are column names in y.
@@ -100,23 +104,32 @@ These column names specify columns in x and y that define
 closed (inclusive) starting and ending intervals. The column name
 specifying the lower-bound column must be specified first.
 these columns in x and y must all be of the same class and either be integer or IDate.</p></dd>
+
+
 <dt>group_vars</dt>
 <dd><p>NULL, or either a character vector denoting the column name(s) in x and y,
 or a named character vector where the name is the column name in x and the value is the column name in y.
 This/these column(s) serve as an additional keying variable in the join (ie in addition to the interval join)
 such that intervals in x will only be joined to overlapping in intervals in y where the group_vars values are the same.</p></dd>
+
+
 <dt>interval_vars_out</dt>
 <dd><p>The column names of the interval columns in the return data.table.
 By default the return table will contain columns <code>c("start","end")</code>.
 If your input tables already contain these columns,
 you need to either specify <code>interval_vars_out</code> to be non-conflicting names with columns in x and y.
 Or you rename columns in x and y to not contain columns named <code>c("start","end")</code>.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>Prints additional information about the function processing.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A data.table with columns <code>interval_vars_out</code> which denote the start and
+    
+
+<p>A data.table with columns <code>interval_vars_out</code> which denote the start and
 stop period for each interval. This return table also contains columns in x and y. See details
 for how naming conflicts are dealt with.</p>
     </div>
@@ -142,19 +155,19 @@ will be names as it was originally and the column in x will be prepended with th
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">3</span>,<span class="fl">5</span><span class="op">)</span>,</span>
-<span class="r-in">ppt_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span>,</span>
-<span class="r-in">addr_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">10L</span>,<span class="fl">12L</span>,<span class="fl">1L</span>,<span class="fl">1L</span><span class="op">)</span>,</span>
-<span class="r-in">addr_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9L</span>,<span class="fl">11L</span>,<span class="fl">14L</span>,<span class="fl">17L</span>,<span class="fl">10L</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">8L</span>,<span class="fl">15L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,</span>
-<span class="r-in">interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span>
-<span class="r-in"><span class="st">"addr_id"</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">3</span>,<span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>ppt_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>addr_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">10L</span>,<span class="fl">12L</span>,<span class="fl">1L</span>,<span class="fl">1L</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>addr_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9L</span>,<span class="fl">11L</span>,<span class="fl">14L</span>,<span class="fl">17L</span>,<span class="fl">10L</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">8L</span>,<span class="fl">15L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,</span></span>
+<span class="r-in"><span>interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    addr_id start end exposure_value ppt_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1:       1     1   7     1.37095845      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2:       1     8   9    -0.56469817      1</span>
@@ -163,18 +176,18 @@ will be names as it was originally and the column in x will be prepended with th
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5:       3     1   7     1.51152200      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6:       3     8  14    -0.09465904      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7:       3    15  17     2.01842371      2</span>
-<span class="r-in"><span class="va">y2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span>,</span>
-<span class="r-in">ppt_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
-<span class="r-in">addr_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">2L</span>,<span class="fl">3L</span>,<span class="fl">4L</span>,<span class="fl">1L</span><span class="op">)</span>,</span>
-<span class="r-in">addr_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9L</span>,<span class="fl">12L</span>,<span class="fl">13L</span>,<span class="fl">8L</span>,<span class="fl">10L</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co">#intervalintersect will still work when there are overlapping intervals within a table:</span></span>
-<span class="r-in"><span class="fu"><a href="is.overlapping.html">is.overlapping</a></span><span class="op">(</span><span class="va">y2</span>,interval_vars <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span> ,group_vars<span class="op">=</span><span class="st">"addr_id"</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="va">y2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>ppt_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>addr_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">2L</span>,<span class="fl">3L</span>,<span class="fl">4L</span>,<span class="fl">1L</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>addr_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9L</span>,<span class="fl">12L</span>,<span class="fl">13L</span>,<span class="fl">8L</span>,<span class="fl">10L</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#intervalintersect will still work when there are overlapping intervals within a table:</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="is.overlapping.html">is.overlapping</a></span><span class="op">(</span><span class="va">y2</span>,interval_vars <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span> ,group_vars<span class="op">=</span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x</span>,<span class="va">y2</span>,</span>
-<span class="r-in">                 interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span>
-<span class="r-in"><span class="st">"addr_id"</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x</span>,<span class="va">y2</span>,</span></span>
+<span class="r-in"><span>                 interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     addr_id start end exposure_value ppt_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:       1     1   7     1.37095845      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  2:       1     8   9    -0.56469817      1</span>
@@ -186,19 +199,19 @@ will be names as it was originally and the column in x will be prepended with th
 <span class="r-out co"><span class="r-pr">#&gt;</span>  8:       2     8  13     0.40426832      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  9:       3     1   7     1.51152200      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10:       3     8  10    -0.09465904      2</span>
-<span class="r-in"></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">7L</span>,<span class="fl">14L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">                exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="is.overlapping.html">is.overlapping</a></span><span class="op">(</span><span class="va">x2</span>,interval_vars <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span> ,group_vars<span class="op">=</span><span class="st">"addr_id"</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">7L</span>,<span class="fl">14L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="is.overlapping.html">is.overlapping</a></span><span class="op">(</span><span class="va">x2</span>,interval_vars <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span> ,group_vars<span class="op">=</span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x2</span>,<span class="va">y2</span>,</span>
-<span class="r-in">interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span>
-<span class="r-in"><span class="st">"addr_id"</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x2</span>,<span class="va">y2</span>,</span></span>
+<span class="r-in"><span>interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     addr_id start end exposure_value ppt_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:       1     1   7     -1.3888607      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  2:       1     7   9     -0.2787888      1</span>
@@ -210,24 +223,24 @@ will be names as it was originally and the column in x will be prepended with th
 <span class="r-out co"><span class="r-pr">#&gt;</span>  8:       2     7  13     -0.2842529      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  9:       3     1   7     -2.4404669      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10:       3     7  10      1.3201133      2</span>
-<span class="r-in"><span class="co">#however, it may be meaningful isolate intervals of partial-overlap within</span></span>
-<span class="r-in"><span class="co">#each table and deal with them</span></span>
-<span class="r-in"><span class="co">#prior to intersecting the tables together:</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">x2z</span> <span class="op">&lt;-</span> <span class="fu"><a href="isolateoverlaps.html">isolateoverlaps</a></span><span class="op">(</span><span class="va">x2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span>,</span>
-<span class="r-in">interval_vars_out<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">x2b</span> <span class="op">&lt;-</span> <span class="va">x2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">exposure_value</span><span class="op">)</span><span class="op">)</span>,</span>
-<span class="r-in"> by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span>,<span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-in"><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span><span class="va">x2b</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="va">y2z</span> <span class="op">&lt;-</span> <span class="fu"><a href="isolateoverlaps.html">isolateoverlaps</a></span><span class="op">(</span><span class="va">y2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span>,</span>
-<span class="r-in">interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start2"</span>,<span class="st">"addr_end2"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">y2b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">y2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">addr_id</span>, <span class="va">ppt_id</span>,<span class="va">addr_start2</span>,<span class="va">addr_end2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span><span class="va">y2b</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start2"</span>,<span class="st">"addr_end2"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x2b</span>,<span class="va">y2b</span>,</span>
-<span class="r-in">interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span>
-<span class="r-in"><span class="st">"addr_id"</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="co">#however, it may be meaningful isolate intervals of partial-overlap within</span></span></span>
+<span class="r-in"><span><span class="co">#each table and deal with them</span></span></span>
+<span class="r-in"><span><span class="co">#prior to intersecting the tables together:</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">x2z</span> <span class="op">&lt;-</span> <span class="fu"><a href="isolateoverlaps.html">isolateoverlaps</a></span><span class="op">(</span><span class="va">x2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>interval_vars_out<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2b</span> <span class="op">&lt;-</span> <span class="va">x2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">exposure_value</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span>,<span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span><span class="va">x2b</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start2"</span>,<span class="st">"exposure_end2"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">y2z</span> <span class="op">&lt;-</span> <span class="fu"><a href="isolateoverlaps.html">isolateoverlaps</a></span><span class="op">(</span><span class="va">y2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start2"</span>,<span class="st">"addr_end2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y2b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">y2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">addr_id</span>, <span class="va">ppt_id</span>,<span class="va">addr_start2</span>,<span class="va">addr_end2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span><span class="va">y2b</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start2"</span>,<span class="st">"addr_end2"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_start"</span>,<span class="st">"addr_end"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">intervalintersect</span><span class="op">(</span><span class="va">x2b</span>,<span class="va">y2b</span>,</span></span>
+<span class="r-in"><span>interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>exposure_start<span class="op">=</span><span class="st">"addr_start"</span>,exposure_end<span class="op">=</span><span class="st">"addr_end"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="st">"addr_id"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     addr_id start end exposure_value ppt_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:       1     1   6     -1.3888607      1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  2:       1     7   7     -0.8338247      1</span>
@@ -242,7 +255,7 @@ will be names as it was originally and the column in x will be prepended with th
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11:       3     1   6     -2.4404669      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 12:       3     7   7     -0.5601768      2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 13:       3     8  10      1.3201133      2</span>
-<span class="r-in"></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -257,7 +270,7 @@ will be names as it was originally and the column in x will be prepended with th
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

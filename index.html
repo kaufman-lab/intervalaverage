@@ -59,10 +59,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/intervalaverage-advanced.html">Introduction to intervalaverage</a>
+      <a href="articles/intervalaverage-advanced.html">Advanced Introduction to intervalaverage</a>
     </li>
     <li>
-      <a href="articles/intervalaverage-intro.html">Introduction to `intervalaverage`</a>
+      <a href="articles/intervalaverage-intro.html">Quick Introduction to intervalaverage</a>
     </li>
     <li>
       <a href="articles/intervalaverage-technicaloverview.html">Technical overview of the intervalaverage function</a>
@@ -89,6 +89,7 @@
 <div class="page-header"><h1 id="intervalaverage">intervalaverage<a class="anchor" aria-label="anchor" href="#intervalaverage"></a>
 </h1></div>
 <!-- badges: start -->
+
 <p>Perform fast and memory efficient time-weighted averaging of values measured over intervals into new arbitrary intervals.</p>
 <p>This package is useful in the context of data measured or represented as constant values over intervals on a one-dimensional discrete axis (e.g. time-integrated averages of a curve over defined periods).</p>
 <p>The intervalaverage package was written specifically to deal with air pollution data recorded or predicted as averages over sampling periods. Data in this format often needs to be shifted to non-aligned periods or averaged up to longer durations (e.g. averaging data measured over sequential non-overlapping periods to calendar years).</p>
@@ -108,75 +109,75 @@
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kaufman-lab.github.io/intervalaverage/">intervalaverage</a></span><span class="op">)</span>
-<span class="co">#&gt; Loading required package: data.table</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kaufman-lab.github.io/intervalaverage/">intervalaverage</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: data.table</span></span></code></pre></div>
 <p>Consider some PM2.5 data measured over periods occurring over a repeating 7-day schedule:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,
-                 end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">7L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,
-                 pm25<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">12</span>,<span class="fl">8</span>,<span class="fl">14</span>,<span class="fl">22</span>,<span class="fl">18</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;    start end pm25</span>
-<span class="co">#&gt; 1:     1   7   10</span>
-<span class="co">#&gt; 2:     8  14   12</span>
-<span class="co">#&gt; 3:    15  21    8</span>
-<span class="co">#&gt; 4:    22  28   14</span>
-<span class="co">#&gt; 5:    29  35   22</span>
-<span class="co">#&gt; 6:    36  42   18</span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,</span>
+<span>                 end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">7L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,</span>
+<span>                 pm25<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">12</span>,<span class="fl">8</span>,<span class="fl">14</span>,<span class="fl">22</span>,<span class="fl">18</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    start end pm25</span></span>
+<span><span class="co">#&gt; 1:     1   7   10</span></span>
+<span><span class="co">#&gt; 2:     8  14   12</span></span>
+<span><span class="co">#&gt; 3:    15  21    8</span></span>
+<span><span class="co">#&gt; 4:    22  28   14</span></span>
+<span><span class="co">#&gt; 5:    29  35   22</span></span>
+<span><span class="co">#&gt; 6:    36  42   18</span></span></code></pre></div>
 <p>Note that the start and end columns define closed intervals (i.e. inclusive).</p>
 <p>Imagine that we would like these PM2.5 measurements to be represented over a different set of intervals, such as the following 7-day schedule which does not align cleanly with the intervals in x:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">3L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,
-                 end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">9L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;    start end</span>
-<span class="co">#&gt; 1:     3   9</span>
-<span class="co">#&gt; 2:    10  16</span>
-<span class="co">#&gt; 3:    17  23</span>
-<span class="co">#&gt; 4:    24  30</span>
-<span class="co">#&gt; 5:    31  37</span>
-<span class="co">#&gt; 6:    38  44</span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">3L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span>,</span>
+<span>                 end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">9L</span>,by<span class="op">=</span><span class="fl">7L</span>,length<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    start end</span></span>
+<span><span class="co">#&gt; 1:     3   9</span></span>
+<span><span class="co">#&gt; 2:    10  16</span></span>
+<span><span class="co">#&gt; 3:    17  23</span></span>
+<span><span class="co">#&gt; 4:    24  30</span></span>
+<span><span class="co">#&gt; 5:    31  37</span></span>
+<span><span class="co">#&gt; 6:    38  44</span></span></code></pre></div>
 <p>Representing the PM25 measurements over the exact intervals in y is not strictly possible, since each y interval contains two x intervals which only partially overlap.</p>
 <p>While there are several ways to compromise and approximate a representation of x over the periods in y, one reasonable approach is to average all the values of PM2.5 in x occuring over the interval of y. But since the two overlap durations of the two x periods into a single y period are unequal, the PM2.5 values should be averaged in a way that takes the duration of overlap into account. That is to say, we need a time-weighted average of values of x into intervals in y.</p>
 <p>This is the exact purpose of the intervalaverage function:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,
-                value_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pm25"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;    start end      pm25 yduration xduration nobs_pm25 xminstart xmaxend</span>
-<span class="co">#&gt; 1:     3   9 10.571429         7         7         7         3       9</span>
-<span class="co">#&gt; 2:    10  16 10.857143         7         7         7        10      16</span>
-<span class="co">#&gt; 3:    17  23  9.714286         7         7         7        17      23</span>
-<span class="co">#&gt; 4:    24  30 16.285714         7         7         7        24      30</span>
-<span class="co">#&gt; 5:    31  37 20.857143         7         7         7        31      37</span>
-<span class="co">#&gt; 6:    38  44        NA         7         5         5        38      42</span>
-<span class="co">#&gt;    maxgap_pm25</span>
-<span class="co">#&gt; 1:           0</span>
-<span class="co">#&gt; 2:           0</span>
-<span class="co">#&gt; 3:           0</span>
-<span class="co">#&gt; 4:           0</span>
-<span class="co">#&gt; 5:           0</span>
-<span class="co">#&gt; 6:           2</span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,</span>
+<span>                value_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pm25"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    start end      pm25 yduration xduration nobs_pm25 xminstart xmaxend</span></span>
+<span><span class="co">#&gt; 1:     3   9 10.571429         7         7         7         3       9</span></span>
+<span><span class="co">#&gt; 2:    10  16 10.857143         7         7         7        10      16</span></span>
+<span><span class="co">#&gt; 3:    17  23  9.714286         7         7         7        17      23</span></span>
+<span><span class="co">#&gt; 4:    24  30 16.285714         7         7         7        24      30</span></span>
+<span><span class="co">#&gt; 5:    31  37 20.857143         7         7         7        31      37</span></span>
+<span><span class="co">#&gt; 6:    38  44        NA         7         5         5        38      42</span></span>
+<span><span class="co">#&gt;    maxgap_pm25</span></span>
+<span><span class="co">#&gt; 1:           0</span></span>
+<span><span class="co">#&gt; 2:           0</span></span>
+<span><span class="co">#&gt; 3:           0</span></span>
+<span><span class="co">#&gt; 4:           0</span></span>
+<span><span class="co">#&gt; 5:           0</span></span>
+<span><span class="co">#&gt; 6:           2</span></span></code></pre></div>
 <p>(Note that the interval average package always assumes specified intervals are closed aka inclusive)</p>
 <p>The pm25 value of 10.571429 is equal to <code>(5/7)*10 + (2/7)*12</code>, where <code>5/7</code> and <code>2/7</code> are the respective time-weights of the the PM2.5 values based on their respective durations of overlap with the period <code>[3,9]</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">z</span><span class="op">[</span><span class="fl">1</span>,<span class="va">pm25</span><span class="op">]</span>, <span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">7</span><span class="op">)</span><span class="op">*</span><span class="fl">10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">2</span><span class="op">/</span><span class="fl">7</span><span class="op">)</span><span class="op">*</span><span class="fl">12</span><span class="op">)</span>
-<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">z</span><span class="op">[</span><span class="fl">1</span>,<span class="va">pm25</span><span class="op">]</span>, <span class="op">(</span><span class="fl">5</span><span class="op">/</span><span class="fl">7</span><span class="op">)</span><span class="op">*</span><span class="fl">10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">2</span><span class="op">/</span><span class="fl">7</span><span class="op">)</span><span class="op">*</span><span class="fl">12</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>Note that in z the average value of PM2.5 is missing (NA) for the final period in y. This is because there is insufficient PM25 to calculate an average. By using a looser completeness requirements we can get an average for this period in y (in general, this will just be the mean of non-missing values in x):</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,
-                value_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pm25"</span><span class="op">)</span>,required_percentage <span class="op">=</span> <span class="fl">70</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;    start end      pm25 yduration xduration nobs_pm25 xminstart xmaxend</span>
-<span class="co">#&gt; 1:     3   9 10.571429         7         7         7         3       9</span>
-<span class="co">#&gt; 2:    10  16 10.857143         7         7         7        10      16</span>
-<span class="co">#&gt; 3:    17  23  9.714286         7         7         7        17      23</span>
-<span class="co">#&gt; 4:    24  30 16.285714         7         7         7        24      30</span>
-<span class="co">#&gt; 5:    31  37 20.857143         7         7         7        31      37</span>
-<span class="co">#&gt; 6:    38  44 18.000000         7         5         5        38      42</span>
-<span class="co">#&gt;    maxgap_pm25</span>
-<span class="co">#&gt; 1:           0</span>
-<span class="co">#&gt; 2:           0</span>
-<span class="co">#&gt; 3:           0</span>
-<span class="co">#&gt; 4:           0</span>
-<span class="co">#&gt; 5:           0</span>
-<span class="co">#&gt; 6:           2</span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/intervalaverage.html">intervalaverage</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span>,</span>
+<span>                value_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pm25"</span><span class="op">)</span>,required_percentage <span class="op">=</span> <span class="fl">70</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    start end      pm25 yduration xduration nobs_pm25 xminstart xmaxend</span></span>
+<span><span class="co">#&gt; 1:     3   9 10.571429         7         7         7         3       9</span></span>
+<span><span class="co">#&gt; 2:    10  16 10.857143         7         7         7        10      16</span></span>
+<span><span class="co">#&gt; 3:    17  23  9.714286         7         7         7        17      23</span></span>
+<span><span class="co">#&gt; 4:    24  30 16.285714         7         7         7        24      30</span></span>
+<span><span class="co">#&gt; 5:    31  37 20.857143         7         7         7        31      37</span></span>
+<span><span class="co">#&gt; 6:    38  44 18.000000         7         5         5        38      42</span></span>
+<span><span class="co">#&gt;    maxgap_pm25</span></span>
+<span><span class="co">#&gt; 1:           0</span></span>
+<span><span class="co">#&gt; 2:           0</span></span>
+<span><span class="co">#&gt; 3:           0</span></span>
+<span><span class="co">#&gt; 4:           0</span></span>
+<span><span class="co">#&gt; 5:           0</span></span>
+<span><span class="co">#&gt; 6:           2</span></span></code></pre></div>
 <p>There is much more described in the vignette. For example, it is possible to calculate averages within a grouping variable. For example if PM2.5 were measured at multiple locations, you could take the average separately at each location in one call to the <code>intervalaverage</code> function. Averaging intervals need not be the same for each locations. See the vignette for examples.</p>
 </div>
 <div class="section level2">
@@ -242,7 +243,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>

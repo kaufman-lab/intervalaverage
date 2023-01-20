@@ -38,10 +38,10 @@ non-overlapping intervals that together form the union of that original interval
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/intervalaverage-advanced.html">Introduction to intervalaverage</a>
+      <a href="../articles/intervalaverage-advanced.html">Advanced Introduction to intervalaverage</a>
     </li>
     <li>
-      <a href="../articles/intervalaverage-intro.html">Introduction to `intervalaverage`</a>
+      <a href="../articles/intervalaverage-intro.html">Quick Introduction to intervalaverage</a>
     </li>
     <li>
       <a href="../articles/intervalaverage-technicaloverview.html">Technical overview of the intervalaverage function</a>
@@ -75,36 +75,45 @@ non-overlapping intervals that together form the union of that original interval
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">isolateoverlaps</span><span class="op">(</span>
-  <span class="va">x</span>,
-  <span class="va">interval_vars</span>,
-  group_vars <span class="op">=</span> <span class="cn">NULL</span>,
-  interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>, <span class="st">"end"</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">isolateoverlaps</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">interval_vars</span>,</span>
+<span>  group_vars <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  interval_vars_out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"start"</span>, <span class="st">"end"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p>A data.table containing a set of intervals.</p></dd>
+
+
 <dt>interval_vars</dt>
 <dd><p>A length-2 character vector denoting column names in x.
 these columns must be of the same class and be integer or IDate. The column name
 specifying the lower-bound column must be specified first.</p></dd>
+
+
 <dt>group_vars</dt>
 <dd><p>NULL, or a character vector denoting column names in x.
 These columns serve as grouping variables such that testing for overlaps and subsequent isolation only occur
 within categories defined by the combination of the group variables.</p></dd>
+
+
 <dt>interval_vars_out</dt>
 <dd><p>The desired column names of the interval columns in the return data.table.
 By default these columns will be generated to be named <code>c("start","end")</code>.
 If x contains columns with the same name as the desired output column
 names specified in <code>interval_vars_out</code>, the function will return in error to avoid naming
 confusion in the return table.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A data.table with columns <code>interval_vars_out</code> which denote the start and
+    
+
+<p>A data.table with columns <code>interval_vars_out</code> which denote the start and
 stop period for each new interval. This return table also contains columns in x
 (including the original interval columns).</p>
     </div>
@@ -123,14 +132,14 @@ values of <code>group_vars</code></p></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">23</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span>
-<span class="r-in">                exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">7L</span>,<span class="fl">14L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span class="r-in">exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="va">x2z</span> <span class="op">&lt;-</span> <span class="fu">isolateoverlaps</span><span class="op">(</span><span class="va">x2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">x2z</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">23</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>addr_id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,each<span class="op">=</span><span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                exposure_start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">7L</span>,<span class="fl">14L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_end<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7L</span>,<span class="fl">14L</span>,<span class="fl">21L</span><span class="op">)</span>,times<span class="op">=</span><span class="fl">4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2z</span> <span class="op">&lt;-</span> <span class="fu">isolateoverlaps</span><span class="op">(</span><span class="va">x2</span>,interval_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exposure_start"</span>,<span class="st">"exposure_end"</span><span class="op">)</span>,group_vars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2z</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     addr_id start end exposure_start exposure_end exposure_value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:       1     1   6              1            7     0.19321233</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  2:       1     7   7              1            7     0.19321233</span>
@@ -161,9 +170,9 @@ values of <code>group_vars</code></p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 27:       4    14  14             14           21    -1.04653534</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 28:       4    15  21             14           21    -1.04653534</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     addr_id start end exposure_start exposure_end exposure_value</span>
-<span class="r-in"><span class="co">#x2b represents x2 when where exposure values in overlapping intervals have been averaged</span></span>
-<span class="r-in"><span class="va">x2b</span> <span class="op">&lt;-</span> <span class="va">x2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">exposure_value</span><span class="op">)</span><span class="op">)</span>,by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span>,<span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-in"></span>
+<span class="r-in"><span><span class="co">#x2b represents x2 when where exposure values in overlapping intervals have been averaged</span></span></span>
+<span class="r-in"><span><span class="va">x2b</span> <span class="op">&lt;-</span> <span class="va">x2z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>exposure_value<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">exposure_value</span><span class="op">)</span><span class="op">)</span>,by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr_id"</span>,<span class="st">"start"</span>,<span class="st">"end"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -178,7 +187,7 @@ values of <code>group_vars</code></p></div>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

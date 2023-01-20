@@ -32,10 +32,10 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/intervalaverage-advanced.html">Introduction to intervalaverage</a>
+      <a href="../articles/intervalaverage-advanced.html">Advanced Introduction to intervalaverage</a>
     </li>
     <li>
-      <a href="../articles/intervalaverage-intro.html">Introduction to `intervalaverage`</a>
+      <a href="../articles/intervalaverage-intro.html">Quick Introduction to intervalaverage</a>
     </li>
     <li>
       <a href="../articles/intervalaverage-technicaloverview.html">Technical overview of the intervalaverage function</a>
@@ -59,13 +59,15 @@
 
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.9.0" id="intervalaverage-090-in-development">intervalaverage 0.9.0 (in development)<a class="anchor" aria-label="anchor" href="#intervalaverage-090-in-development"></a></h2>
-<ol style="list-style-type: decimal"><li>is.overlapping: interval_vars now must be of class integer or IDate, consistent with the other functions in this package. Since other functions only deal with discrete data on closed intervals, it makes sense to keep this consistent with those other functions.</li></ol><p>is.overlapping should be much faster (and use less memory) in the cases where the dataset contains many overlaps.</p>
+<ol style="list-style-type: decimal"><li>is.overlapping: interval_vars now must be of class integer or IDate, consistent with the other functions in this package. Since other functions only deal with discrete data on closed intervals, it makes sense to keep this consistent with those other functions.</li>
+</ol><p>is.overlapping should be much faster (and use less memory) in the cases where the dataset contains many overlaps.</p>
 <ol start="2" style="list-style-type: decimal"><li><p>In intervalaverage, the internal test for overlaps is faster, so there’s less reason to specify skip_overlap_check ==TRUE</p></li>
 <li><p>When dealing with data.table objects loaded from disk, is.overlapping and other functions could return confusing error messages (“all(required_columns %in% names(x)) is not TRUE”). These error messages are now more clear (coming directly from the data.table package) explainig that data.table objects loaded from disk need to have memory allocated explicitly first “Please run setDT() or setalloccol() on it first (to pre-allocate space for new columns) before assigning by reference to it.”).</p></li>
 </ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.8.0" id="intervalaverage-080-release">intervalaverage 0.8.0 (Release)<small>2020-07-23</small><a class="anchor" aria-label="anchor" href="#intervalaverage-080-release"></a></h2>
-<ol style="list-style-type: decimal"><li>No major changes from 0.0.0.9010 other than changing the readme to reflect that this may be soon downloadable from CRAN.</li></ol></div>
+<ol style="list-style-type: decimal"><li>No major changes from 0.0.0.9010 other than changing the readme to reflect that this may be soon downloadable from CRAN.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9010" id="intervalaverage-0009010-development">intervalaverage 0.0.0.9010 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009010-development"></a></h2>
 <ol style="list-style-type: decimal"><li><p>Slight reversal to the breaking change before: I had forgotten I was already allowing different group_vars in x and y via providing named group_vars for intervalintersect so this functionality is turned back on. Naming either interval_vars or group_vars in the intervalintersect function is still explicitly disallowed since the functionality of allowing different join column names in x and y for that function is still not implemented.</p></li>
@@ -78,19 +80,24 @@
 </ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9008" id="intervalaverage-0009008-development">intervalaverage 0.0.0.9008 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009008-development"></a></h2>
-<ol style="list-style-type: decimal"><li>Optimized interval average for memory usage.</li></ol></div>
+<ol style="list-style-type: decimal"><li>Optimized interval average for memory usage.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9007" id="intervalaverage-0009007-development">intervalaverage 0.0.0.9007 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009007-development"></a></h2>
-<ol style="list-style-type: decimal"><li>Performance check is no longer tested on cran.</li></ol></div>
+<ol style="list-style-type: decimal"><li>Performance check is no longer tested on cran.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9006" id="intervalaverage-0009006-development">intervalaverage 0.0.0.9006 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009006-development"></a></h2>
-<ol style="list-style-type: decimal"><li>A new unit test/regression test has been added to ensure that the function is using the optimal algorithm based on data.table performance.</li></ol></div>
+<ol style="list-style-type: decimal"><li>A new unit test/regression test has been added to ensure that the function is using the optimal algorithm based on data.table performance.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9005" id="intervalaverage-0009005-development">intervalaverage 0.0.0.9005 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009005-development"></a></h2>
-<ol style="list-style-type: decimal"><li>fixed a bug where the y argument of intervalaverage was not being restored to its original state (row order and removing ordering column rowindex) if there were overlapping intervals in y.</li></ol></div>
+<ol style="list-style-type: decimal"><li>fixed a bug where the y argument of intervalaverage was not being restored to its original state (row order and removing ordering column rowindex) if there were overlapping intervals in y.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9004" id="intervalaverage-0009004-development">intervalaverage 0.0.0.9004 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009004-development"></a></h2>
-<ol style="list-style-type: decimal"><li>More improvements to the vignette. The final example is now complete (previously it did not actually average the clipped exposures).</li></ol></div>
+<ol style="list-style-type: decimal"><li>More improvements to the vignette. The final example is now complete (previously it did not actually average the clipped exposures).</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.0.9003" id="intervalaverage-0009003-development">intervalaverage 0.0.0.9003 (Development)<a class="anchor" aria-label="anchor" href="#intervalaverage-0009003-development"></a></h2>
 <ol style="list-style-type: decimal"><li>More minor improvements in documentation (edits to intro vignette and help files)</li>
@@ -111,7 +118,9 @@
 <ol style="list-style-type: decimal"><li><p>Interval columns used by <code>intervalaverage</code>, <code>intervalintersect</code>, and <code>isolateoverlaps</code> functions (i.e. those columns of <code>x</code> and <code>y</code> specified by the <code>interval_vars</code> argument in all of those functions) must now be of either class <code>integer</code> or <code>IDate</code>. This is a change from previous where columns of class <code>Date</code> were allowed. <code>Date</code> objects could have hidden decimals which might cause problems in this function which is written to deal with only discrete time. Changing Dates to IDates should fix existing code.</p></li>
 <li><p><code>intervalaverage</code> now restores the keys of x and y to their state prior to the function call if x and y are not already keyed on c(group_vars,interval_vars) and prints a message recommending that the keys be set first (to avoid unsetting the key at the end of the function if you don’t care about the order). This is a breaking change only if code relied on <code>intervalaverage</code> changing the key.</p></li>
 </ol></div>
-<div class="section level3"><h3 id="new-features-0-0-0-9001">NEW FEATURES<a class="anchor" aria-label="anchor" href="#new-features-0-0-0-9001"></a></h3></div>
+<div class="section level3">
+<h3 id="new-features-0-0-0-9001">NEW FEATURES<a class="anchor" aria-label="anchor" href="#new-features-0-0-0-9001"></a></h3>
+</div>
 <div class="section level3">
 <h3 id="bug-fixes-0-0-0-9001">BUG FIXES<a class="anchor" aria-label="anchor" href="#bug-fixes-0-0-0-9001"></a></h3>
 <ol style="list-style-type: decimal"><li><p><code>isolateoverlaps</code> no longer sets the key of x internal to the function as this was never necessary for the foverlaps call to work. This should reduce the possibility of side-effects for this function even though x is still passed by reference. This fixes the problem that the key of x might changed if the function returns an error (the function was already written to restore the key of x if it successfully completed).</p></li>
@@ -133,7 +142,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
